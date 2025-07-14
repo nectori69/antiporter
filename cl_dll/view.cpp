@@ -1739,6 +1739,18 @@ void V_DropPunchAngle(float frametime, float* ev_punchangle)
 
 /*
 =============
+V_Recoil
+
+Adjusts aim to simulate muzzle rise
+=============
+*/
+void V_Recoil(float recoil)
+{
+	v_client_aimangles[0] += recoil;
+}
+
+/*
+=============
 V_PunchAxis
 
 Client side punch effect

@@ -1257,8 +1257,6 @@ public:
 	void Reload() override;
 	void WeaponIdle() override;
 
-	void Recoil(float flRecoil);
-
 	bool TriggerReleased;
 
 	virtual bool UseDecrement() override
@@ -1290,8 +1288,6 @@ public:
 	void Reload() override;
 	void WeaponIdle() override;
 
-	void Recoil(float flRecoil);
-
 	bool TriggerReleased;
 
 	virtual bool UseDecrement() override
@@ -1321,8 +1317,6 @@ public:
 	void Holster() override;
 	void Reload() override;
 	void WeaponIdle() override;
-
-	void Recoil(float flRecoil);
 
 	virtual bool UseDecrement() override
 	{

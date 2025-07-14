@@ -140,9 +140,6 @@ void CM4::PrimaryAttack()
 	// Set global vectors in the engine (don't ask)
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
 
-	// kick the camera up a bit
-	Recoil(15.0);
-
 	// Shoot bullets!
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
@@ -179,11 +176,6 @@ void CM4::PrimaryAttack()
 
 	// Set the time until the weapon should start idling again
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10, 15);
-}
-
-void CM4::Recoil(float flRecoil)
-{
-	m_pPlayer->pev->angles[0] += flRecoil;
 }
 
 bool CM4::Deploy()

@@ -48,6 +48,8 @@ static int tracerCount[MAX_PLAYERS];
 
 #include "pm_shared.h"
 
+void V_Recoil(float recoil);
+
 void V_PunchAxis(int axis, float punch);
 void VectorAngles(const float* forward, float* angles);
 
@@ -1830,6 +1832,7 @@ void EV_FireM4(event_args_t* args)
 		}
 
 		//...and recoil the camera
+		V_Recoil(0.5);
 		V_PunchAxis(0, -1.5);
 	}
 
