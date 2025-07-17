@@ -68,6 +68,7 @@ CSqueak g_Snark;
 CDesertEagle g_DesertEagle;
 CM92 g_M92;
 CM4 g_M4;
+CBDRifle g_BDRifle;
 
 /*
 ======================
@@ -438,6 +439,7 @@ void HUD_InitClientWeapons()
 	HUD_PrepEntity(&g_DesertEagle, &player);
 	HUD_PrepEntity(&g_M92, &player);
 	HUD_PrepEntity(&g_M4, &player);
+	HUD_PrepEntity(&g_BDRifle, &player);
 }
 
 /*
@@ -571,6 +573,10 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 
 	case WEAPON_M4:
 		pWeapon = &g_M4;
+		break;
+
+	case WEAPON_BDRIFLE:
+		pWeapon = &g_BDRifle;
 		break;
 	}
 

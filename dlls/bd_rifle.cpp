@@ -5,38 +5,38 @@
 #include "player.h"
 
 // These correspond directly to the sequences in the weapon's view model
-enum m4_e
+enum bdrifle_e
 {
-	M4_LONGIDLE = 0,
-	M4_IDLE,
-	M4_RELOAD_EMPTY,
-	M4_RELOAD,
-	M4_DEPLOY,
-	M4_FIRE1,
-	M4_FIRE2,
-	M4_FIRE3,
+	BDRIFLE_LONGIDLE = 0,
+	BDRIFLE_IDLE,
+	BDRIFLE_RELOAD_EMPTY,
+	BDRIFLE_RELOAD,
+	BDRIFLE_DEPLOY,
+	BDRIFLE_FIRE1,
+	BDRIFLE_FIRE2,
+	BDRIFLE_FIRE3,
 };
 
-LINK_ENTITY_TO_CLASS(weapon_m4, CM4)
+LINK_ENTITY_TO_CLASS(weapon_bdrifle, CBDRifle)
 
-void CM4::Spawn()
+void CBDRifle::Spawn()
 {
 	// Define the classname of the entity
 	// This is the name you should use to reference this entity name in your code base.
-	pev->classname = MAKE_STRING("weapon_m4");
+	pev->classname = MAKE_STRING("weapon_bdrifle");
 
 	// Precache the weapon models and sounds
 	// This might be called by the engine separately, but it's best to call it here as well just in case.
 	Precache();
 
 	// Set the weapon ID
-	m_iId = WEAPON_M4;
+	m_iId = WEAPON_BDRIFLE;
 
 	// Tell the engine about the weapon's world model
-	SET_MODEL(ENT(pev), "models/w_m4.mdl");
+	SET_MODEL(ENT(pev), "models/w_bdrifle.mdl");
 
 	// Set the default ammo value for the weapon
-	m_iDefaultAmmo = M4_DEFAULT_GIVE;
+	m_iDefaultAmmo = BDRIFLE_DEFAULT_GIVE;
 
 	// Set up some default behaviour for the weapon
 	// This will tell the engine that the weapon should "fall" to the ground when it spawns.
@@ -44,25 +44,25 @@ void CM4::Spawn()
 	FallInit();
 }
 
-void CM4::Precache()
+void CBDRifle::Precache()
 {
 	// Precache models
-	PRECACHE_MODEL("models/v_m4.mdl");
-	PRECACHE_MODEL("models/w_m4.mdl");
-	PRECACHE_MODEL("models/p_m4.mdl");
+	PRECACHE_MODEL("models/v_bdrifle.mdl");
+	PRECACHE_MODEL("models/w_bdrifle.mdl");
+	PRECACHE_MODEL("models/p_bdrifle.mdl");
 	PRECACHE_MODEL("models/shells/556x45.mdl");
 
 	// Precache sounds
-	PRECACHE_SOUND("weapons/m4/m4_fire1.wav"); // H to the K
-	PRECACHE_SOUND("weapons/m4/m4_fire2.wav"); // H to the K
-	PRECACHE_SOUND("weapons/m4/m4_fire3.wav"); // H to the K
-	PRECACHE_SOUND("weapons/m4/m4_fire4.wav"); // H to the K
+	PRECACHE_SOUND("weapons/brutaldoom/bdrifle_fire1.wav"); // H to the K
+	PRECACHE_SOUND("weapons/brutaldoom/bdrifle_fire2.wav"); // H to the K
+	PRECACHE_SOUND("weapons/brutaldoom/bdrifle_fire3.wav"); // H to the K
+	PRECACHE_SOUND("weapons/brutaldoom/bdrifle_fire4.wav"); // H to the K
 
 	// Precache fire event
-	m_usFireM4 = PRECACHE_EVENT(1, "events/m4.sc");
+	m_usFireBDRifle = PRECACHE_EVENT(1, "events/bdrifle.sc");
 }
 
-bool CM4::GetItemInfo(ItemInfo* p)
+bool CBDRifle::GetItemInfo(ItemInfo* p)
 {
 	// This should match the classname - the HUD uses it to find the matching .txt file in the sprites/ folder
 	p->pszName = STRING(pev->classname);
@@ -76,7 +76,7 @@ bool CM4::GetItemInfo(ItemInfo* p)
 	p->iMaxAmmo2 = -1;
 
 	// The size of a full clip
-	p->iMaxClip = M4_MAX_CLIP;
+	p->iMaxClip = BDRIFLE_MAX_CLIP;
 
 	// Special weapon flags - leave this as 0 for now, this is covered in a different article
 	p->iFlags = 0;
@@ -85,20 +85,20 @@ bool CM4::GetItemInfo(ItemInfo* p)
 	p->iSlot = 2;
 
 	// The "position" in the HUD that the weapon is added to. We'll put this after the deagle (which is in slot 2)
-	p->iPosition = 3;
+	p->iPosition = 4;
 
 	// Set the ID and auto-switching weights of the weapon
-	p->iId = m_iId = WEAPON_M4;
-	p->iWeight = M4_WEIGHT;
+	p->iId = m_iId = WEAPON_BDRIFLE;
+	p->iWeight = BDRIFLE_WEIGHT;
 
 	return true;
 }
 
-void CM4::SecondaryAttack()
+void CBDRifle::SecondaryAttack()
 {
 }
 
-void CM4::PrimaryAttack()
+void CBDRifle::PrimaryAttack()
 {
 	// Don't fire underwater - waterlevel 3 indicates that the player's head is underwater
 	if (m_pPlayer->pev->waterlevel == 3)
@@ -163,7 +163,7 @@ void CM4::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFireM4, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFireBDRifle, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, vecDir.x, vecDir.y, 0, 0, (m_iClip == 0) ? 1 : 0, 0);
 
 	// If the clip is now empty and there's no more ammo available, update the HEV
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
@@ -172,24 +172,24 @@ void CM4::PrimaryAttack()
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
 	}
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + (1.0/35.0 * 2.5); //2.5 doom tics, bit easier to remember the timing of
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + (1.0 / 35.0 * 4.0); //4 doom tics, bit easier to remember the timing of
 
 	// Set the time until the weapon should start idling again
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 10, 15);
 }
 
-bool CM4::Deploy()
+bool CBDRifle::Deploy()
 {
 	return DefaultDeploy(
-		"models/v_m4.mdl", // Weapon view model
-		"models/p_m4.mdl", // Weapon player model
-		M4_DEPLOY,			// "Draw" animation index for the view model
-		"onehanded",		// Third person animation set for the weapon. We'll use the generic "onehanded" animation set
-		pev->body			// The weapon model's "body" pointer
+		"models/v_bdrifle.mdl", // Weapon view model
+		"models/p_bdrifle.mdl", // Weapon player model
+		BDRIFLE_DEPLOY,				// "Draw" animation index for the view model
+		"onehanded",			// Third person animation set for the weapon. We'll use the generic "onehanded" animation set
+		pev->body				// The weapon model's "body" pointer
 	);
 }
 
-void CM4::Holster()
+void CBDRifle::Holster()
 {
 	// Cancel any reload in progress
 	m_fInReload = false;
@@ -200,7 +200,7 @@ void CM4::Holster()
 	// Play the "holster" animation
 }
 
-void CM4::Reload()
+void CBDRifle::Reload()
 {
 	// Don't reload if the player doesn't have any ammo
 	if (m_pPlayer->ammo_9mm <= 0)
@@ -210,9 +210,9 @@ void CM4::Reload()
 
 	// The view model has two different animations depending on if there are any bullets in the clip
 	if (m_iClip == 0)
-		iResult = DefaultReload(M4_MAX_CLIP, M4_RELOAD_EMPTY, (100 / 35.0));
+		iResult = DefaultReload(BDRIFLE_MAX_CLIP, BDRIFLE_RELOAD_EMPTY, (60 / 30.0));
 	else
-		iResult = DefaultReload(M4_MAX_CLIP, M4_RELOAD, (90 / 35.0));
+		iResult = DefaultReload(BDRIFLE_MAX_CLIP, BDRIFLE_RELOAD, (45 / 30.0));
 
 	if (iResult)
 	{
@@ -221,7 +221,7 @@ void CM4::Reload()
 	}
 }
 
-void CM4::WeaponIdle()
+void CBDRifle::WeaponIdle()
 {
 	// This is used in conjunction with the PlayEmptySound function.
 	// This resets a flag so the "click" for an empty weapon can be replayed after a short delay
@@ -247,13 +247,13 @@ void CM4::WeaponIdle()
 		// The numbers here (110.0 / 20.0) are a way to represent the time taken by the
 		// animation, so the next idle animation isn't played before the current one has
 		// been completed. This animation is 110 frames long, and runs at 20 frames per second.
-		iAnim = M4_IDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (110 / 20.0);
+		iAnim = BDRIFLE_IDLE;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (120 / 15.0);
 	}
 	else
 	{
-		iAnim = M4_LONGIDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (130 / 30.0);
+		iAnim = BDRIFLE_LONGIDLE;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (120 / 30.0);
 	}
 
 	// Play the idle animation

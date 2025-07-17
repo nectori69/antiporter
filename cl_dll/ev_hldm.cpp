@@ -1852,7 +1852,7 @@ void EV_FireM4(event_args_t* args)
 		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
 		break;
 	case 3:
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire4.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
 		break;
 	}
 
@@ -1865,6 +1865,104 @@ void EV_FireM4(event_args_t* args)
 
 //======================
 //		M4 END
+//======================
+
+//======================
+//		BDRifle START
+//======================
+
+//exact same as the values from bd_rifle.cpp, these are the animation names
+enum bdrifle_e
+{
+	BDRIFLE_LONGIDLE = 0,
+	BDRIFLE_IDLE,
+	BDRIFLE_RELOAD_EMPTY,
+	BDRIFLE_RELOAD,
+	BDRIFLE_DEPLOY,
+	BDRIFLE_FIRE1,
+	BDRIFLE_FIRE2,
+	BDRIFLE_FIRE3,
+};
+
+void EV_FireBDRifle(event_args_t* args)
+{
+	//variables, copy/paste code, etc...
+	int idx;
+	Vector origin;
+	Vector angles;
+	Vector velocity;
+	bool empty;
+
+	Vector ShellVelocity;
+	Vector ShellOrigin;
+	int shell;
+	Vector vecSRC, vecAiming;
+	Vector up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy(args->origin, origin);
+	VectorCopy(args->angles, angles);
+	VectorCopy(args->velocity, velocity);
+
+	empty = 0 != args->bparam1;
+	AngleVectors(angles, forward, right, up);
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex("models/shells/556x45.mdl"); //casing model
+
+	//if the entity firing this event is the player...
+	if (EV_IsLocal(idx))
+	{
+		//...render muzzleflash...
+		EV_MuzzleFlash();
+
+		//...show the gun firing!!
+		switch (gEngfuncs.pfnRandomLong(0, 2))
+		{
+		case 0:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(BDRIFLE_FIRE1, 0);
+			break;
+		case 1:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(BDRIFLE_FIRE2, 0);
+			break;
+		case 2:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(BDRIFLE_FIRE3, 0);
+			break;
+		}
+
+		//...and recoil the camera
+		V_Recoil(0.5);
+		V_PunchAxis(0, -1.5);
+	}
+
+	//eject the casing!!!
+	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
+	EV_EjectBrass(ShellOrigin, ShellVelocity, angles[YAW], shell, TE_BOUNCE_SHELL);
+
+	switch (gEngfuncs.pfnRandomLong(0, 3))
+	{
+	case 0:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/brutaldoom/bdrifle_fire1.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		break;
+	case 1:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/brutaldoom/bdrifle_fire2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		break;
+	case 2:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/brutaldoom/bdrifle_fire3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		break;
+	case 3:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/brutaldoom/bdrifle_fire4.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		break;
+	}
+
+	//throw some metal down-range
+	EV_GetGunPosition(args, vecSRC, origin);
+	EV_HLDM_MuzzleFlash(vecSRC, 1.0 + gEngfuncs.pfnRandomFloat(-0.2, 0.2));
+	VectorCopy(forward, vecAiming);
+	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSRC, vecAiming, 8192, BULLET_PLAYER_M4, 0, 0, args->fparam1, args->fparam2);
+}
+
+//======================
+//		BDRifle END
 //======================
 
 void EV_TrainPitchAdjust(event_args_t* args)

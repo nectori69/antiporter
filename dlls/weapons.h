@@ -89,6 +89,7 @@ public:
 #define DESERT_EAGLE_WEIGHT 15
 #define M92_WEIGHT 10
 #define M4_WEIGHT 15
+#define BDRIFLE_WEIGHT 15
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY 100
@@ -127,6 +128,7 @@ public:
 #define DESERT_EAGLE_MAX_CLIP 7
 #define M92_MAX_CLIP 15
 #define M4_MAX_CLIP 30
+#define BDRIFLE_MAX_CLIP 30
 
 // the default amount of ammo that comes with each gun when it spawns
 #define GLOCK_DEFAULT_GIVE 17
@@ -148,6 +150,7 @@ public:
 #define DESERT_EAGLE_DEFAULT_GIVE 7
 #define M92_DEFAULT_GIVE 15
 #define M4_DEFAULT_GIVE 30
+#define BDRIFLE_DEFAULT_GIVE 30
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE 20
@@ -1329,4 +1332,32 @@ public:
 
 private:
 	unsigned short m_usFireM4;
+};
+
+class CBDRifle : public CBasePlayerWeapon
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	int iItemSlot() override { return 2; }
+	bool GetItemInfo(ItemInfo* p) override;
+
+	void PrimaryAttack() override;
+	void SecondaryAttack() override;
+	bool Deploy() override;
+	void Holster() override;
+	void Reload() override;
+	void WeaponIdle() override;
+
+	virtual bool UseDecrement() override
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+
+private:
+	unsigned short m_usFireBDRifle;
 };

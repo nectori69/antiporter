@@ -166,7 +166,7 @@ void CMP5::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.085);
+	m_flNextPrimaryAttack = GetNextAttackDelay(1.0 / 35.0 * 3.0); //3 doom tics, bit easier to remember the timing of
 
 	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.07;
