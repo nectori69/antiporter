@@ -1965,6 +1965,82 @@ void EV_FireBDRifle(event_args_t* args)
 //		BDRifle END
 //======================
 
+//======================
+//		DUKE4 PISTOL START
+//======================
+
+//exact same as the values from duke4_pistol.cpp, these are the animation names
+enum duke4pistol_e
+{
+	DUKE4_PISTOL_IDLE1 = 0,
+	DUKE4_PISTOL_IDLE2,
+	DUKE4_PISTOL_IDLE3,
+	DUKE4_PISTOL_FIDGET,
+	DUKE4_PISTOL_SHOOT,
+	DUKE4_PISTOL_SHOOT_EMPTY,
+	DUKE4_PISTOL_RELOAD,
+	DUKE4_PISTOL_RELOAD_NOT_EMPTY,
+	DUKE4_PISTOL_DRAW,
+	DUKE4_PISTOL_HOLSTER,
+};
+
+void EV_FireDuke4Pistol(event_args_t* args)
+{
+	//variables, copy/paste code, etc...
+	int idx;
+	Vector origin;
+	Vector angles;
+	Vector velocity;
+	bool empty;
+
+	Vector ShellVelocity;
+	Vector ShellOrigin;
+	int shell;
+	Vector vecSRC, vecAiming;
+	Vector up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy(args->origin, origin);
+	VectorCopy(args->angles, angles);
+	VectorCopy(args->velocity, velocity);
+
+	empty = 0 != args->bparam1;
+	AngleVectors(angles, forward, right, up);
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex("models/shells/50ae.mdl"); //casing model
+
+	//if the entity firing this event is the player...
+	if (EV_IsLocal(idx))
+	{
+		//...render muzzleflash...
+		EV_MuzzleFlash();
+
+		//...show the gun firing, or firing and locking to the rear if it's the last round in the magazine...
+		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? DUKE4_PISTOL_SHOOT_EMPTY : DUKE4_PISTOL_SHOOT, 0);
+
+		//...and recoil the camera
+		V_PunchAxis(0, -4);
+	}
+
+	//eject the casing!!!
+	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
+	EV_EjectBrass(ShellOrigin, ShellVelocity, angles[YAW], shell, TE_BOUNCE_SHELL);
+
+	//make a very loud bang
+	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/duke4/duke4_pistol_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+
+	//throw some metal down-range
+	EV_GetGunPosition(args, vecSRC, origin);
+	EV_HLDM_MuzzleFlash(vecSRC, 1.0 + gEngfuncs.pfnRandomFloat(-0.2, 0.2));
+	VectorCopy(forward, vecAiming);
+	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSRC, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2);
+}
+
+//======================
+//		DUKE4 PISTOL END
+//======================
+
+
 void EV_TrainPitchAdjust(event_args_t* args)
 {
 	int idx;

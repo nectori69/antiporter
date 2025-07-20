@@ -79,7 +79,7 @@ bool CBDRifle::GetItemInfo(ItemInfo* p)
 	p->iMaxClip = BDRIFLE_MAX_CLIP;
 
 	// Special weapon flags - leave this as 0 for now, this is covered in a different article
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_NOAUTORELOAD;
 
 	// The "slot" in the HUD that the weapon appears in. This is a pistol, so it goes into slot 1 with the others
 	p->iSlot = 2;

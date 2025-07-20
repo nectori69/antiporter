@@ -196,7 +196,7 @@ void V_CalcBob(struct ref_params_s* pparams, float freqmod, calcBobMode_t mode, 
 	// bob is proportional to simulated velocity in the xy plane
 	// (don't count Z, or jumping messes it up)
 	VectorCopy(pparams->simvel, vel);
-	vel[2] = 0;
+	//vel[2] = 0;
 
 	bob = sqrt(vel[0] * vel[0] + vel[1] * vel[1]) * cl_bob->value;
 
@@ -531,8 +531,8 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	// transform the view offset by the model's matrix to get the offset from
 	// model origin for the view
 	V_CalcBob(pparams, 1.0f, VB_SIN, bobtimes[0], bobRight, lasttimes[0]);	  // right
-	V_CalcBob(pparams, 2.00f, VB_SIN, bobtimes[1], bobUp, lasttimes[1]);	  // up
-	V_CalcBob(pparams, 0.5f, VB_SIN, bobtimes[2], bobForward, lasttimes[2]); // forward
+	V_CalcBob(pparams, 2.0f, VB_SIN, bobtimes[1], bobUp, lasttimes[1]);	 // up
+	V_CalcBob(pparams, 0.5f, VB_SIN, bobtimes[2], bobForward, lasttimes[2]);	  // forward
 	V_CalcBob(pparams, 1.0f, VB_COS, bobtimes[3], bobRightCos, lasttimes[3]); // right, cos
 
 	// refresh position
@@ -664,13 +664,17 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	// Let the viewmodel shake at about 10% of the amplitude
 	gEngfuncs.V_ApplyShake(view->origin, view->angles, 0.9);
 
-	for (i = 0; i < 3; i++)
+	for (i = 0; // it might seem crazy,
+		 i < 3; // but this is actually
+		 i++)   // very readable for me
 	{
-		view->origin[i] += bobRight * 0.3 * pparams->right[i];
-		view->origin[i] += bobUp * 0.15 * pparams->up[i];
-		//view->origin[i] += bobForward * 0.125 * pparams->forward[i];
+		view->origin[i] += bobRight		* 0.3	* pparams->right[i];    //1
+		view->origin[i] += bobUp		* 0.15	* pparams->up[i];		//2
+		view->origin[i] += bobForward	* 0.0	* pparams->forward[i];	//3
 	}
 
+	pparams->vieworg[2] -= bobUp * 0.6 * pparams->up[2];
+	view->origin[2] -= bobUp * 0.6 * pparams->up[2];
 
 	// throw in a little tilt.
 
@@ -1746,7 +1750,7 @@ Adjusts aim to simulate muzzle rise
 */
 void V_Recoil(float recoil)
 {
-	v_client_aimangles[0] += recoil;
+	v_client_aimangles[4] += recoil;
 }
 
 /*

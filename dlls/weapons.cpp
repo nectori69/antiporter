@@ -334,6 +334,8 @@ void W_Precache()
 	UTIL_PrecacheOtherWeapon("weapon_m4");
 	// bdrifle
 	UTIL_PrecacheOtherWeapon("weapon_bdrifle");
+	// duke4, pistol
+	UTIL_PrecacheOtherWeapon("weapon_duke4pistol");
 
 
 	if (g_pGameRules->IsDeathmatch())

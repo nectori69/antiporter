@@ -261,7 +261,7 @@ bool CCrossbow::GetItemInfo(ItemInfo* p)
 	p->iSlot = 2;
 	p->iPosition = 2;
 	p->iId = WEAPON_CROSSBOW;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_NOAUTORELOAD;
 	p->iWeight = CROSSBOW_WEIGHT;
 	return true;
 }

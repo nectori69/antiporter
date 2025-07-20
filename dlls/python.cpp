@@ -33,7 +33,7 @@ bool CPython::GetItemInfo(ItemInfo* p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = PYTHON_MAX_CLIP;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_NOAUTORELOAD;
 	p->iSlot = 1;
 	p->iPosition = 1;
 	p->iId = m_iId = WEAPON_PYTHON;
