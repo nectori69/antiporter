@@ -19,6 +19,7 @@
 #include "shake.h"
 #include "hltv.h"
 #include "Exports.h"
+#include "motion_spring.h"
 
 int CL_IsThirdPerson();
 void CL_CameraOffset(float* ofs);
@@ -61,7 +62,7 @@ extern cvar_t *scr_ofsx, *scr_ofsy, *scr_ofsz;
 extern cvar_t* cl_vsmoothing;
 extern cvar_t* cl_rollangle;
 extern cvar_t* cl_rollspeed;
-extern cvar_t* cl_bobtilt;
+//extern cvar_t* cl_viewmodel_bobtilt;
 
 #define CAM_MODE_RELAX 1
 #define CAM_MODE_FOCUS 2
@@ -83,9 +84,18 @@ cvar_t* scr_ofsz;
 cvar_t* v_centermove;
 cvar_t* v_centerspeed;
 
-cvar_t* cl_bobcycle;
-cvar_t* cl_bob;
-cvar_t* cl_bobup;
+cvar_t* cl_viewmodel_bob_cycle;
+cvar_t* cl_viewmodel_bob;
+cvar_t* cl_viewmodel_recoil_pos_stiffness;
+cvar_t* cl_viewmodel_recoil_pos_dampening;
+cvar_t* cl_viewmodel_recoil_rot_stiffness;
+cvar_t* cl_viewmodel_recoil_rot_dampening;
+cvar_t* cl_viewmodel_sway_pos;
+cvar_t* cl_viewmodel_sway_pos_stiffness;
+cvar_t* cl_viewmodel_sway_pos_dampening;
+cvar_t* cl_viewmodel_sway_rot;
+cvar_t* cl_viewmodel_sway_rot_stiffness;
+cvar_t* cl_viewmodel_sway_rot_dampening;
 cvar_t* cl_waterdist;
 cvar_t* cl_chasedist;
 
@@ -99,6 +109,13 @@ cvar_t v_iroll_level = {"v_iroll_level", "0.1", 0, 0.1};
 cvar_t v_ipitch_level = {"v_ipitch_level", "0.3", 0, 0.3};
 
 float v_idlescale; // used by TFC for concussion grenade effect
+
+Spring spring_viewmodel_position;
+Spring spring_viewmodel_rotation;
+Spring spring_viewmodel_recoil_position;
+Spring spring_viewmodel_recoil_rotation;
+
+Vector recoilAngle(0, 0, 0);
 
 //=============================================================================
 /*
@@ -181,24 +198,24 @@ void V_CalcBob(struct ref_params_s* pparams, float freqmod, calcBobMode_t mode, 
 	lasttime = pparams->time;
 
 	bobtime += pparams->frametime * freqmod;
-	cycle = bobtime - (int)(bobtime / cl_bobcycle->value) * cl_bobcycle->value;
-	cycle /= cl_bobcycle->value;
+	cycle = bobtime - (int)(bobtime / cl_viewmodel_bob_cycle->value) * cl_viewmodel_bob_cycle->value;
+	cycle /= cl_viewmodel_bob_cycle->value;
 
-	if (cycle < cl_bobup->value)
-	{
-		cycle = M_PI * cycle / cl_bobup->value;
-	}
+	/*if (cycle < cl_viewmodel_bobup->value)
+	{*/
+		cycle = M_PI * cycle /*cl_viewmodel_bobup->value*/ / 0.5f;
+	/*}
 	else
 	{
-		cycle = M_PI + M_PI * (cycle - cl_bobup->value) / (1.0 - cl_bobup->value);
-	}
+		cycle = M_PI + M_PI * (cycle - cl_viewmodel_bobup->value) / (1.0 - cl_viewmodel_bobup->value);
+	}*/
 
 	// bob is proportional to simulated velocity in the xy plane
 	// (don't count Z, or jumping messes it up)
 	VectorCopy(pparams->simvel, vel);
 	//vel[2] = 0;
 
-	bob = sqrt(vel[0] * vel[0] + vel[1] * vel[1]) * cl_bob->value;
+	bob = sqrt(vel[0] * vel[0] + vel[1] * vel[1])* /*cl_viewmodel_bob->value*/ 0.01f;
 
 	if (mode == VB_SIN)
 		bob = bob * 0.3 + bob * 0.7 * sin(cycle);
@@ -501,14 +518,16 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 	cl_entity_t *ent, *view;
 	int i;
 	Vector angles;
-	float bobRight = 0, bobUp = 0, bobForward = 0, bobRightCos = 0, waterOffset;
+	float bobRight = 0, bobUp = 0, bobForward = 0, bobRightCos = 0, bobUpCos = 0, bobForwardCos = 0, waterOffset;
 	static viewinterp_t ViewInterp;
+
+	float cycleSpeed = 1.1;
 
 	static float oldz = 0;
 	static float lasttime;
 
-	static double bobtimes[4] = {0, 0, 0, 0};
-	static float lasttimes[4] = {0, 0, 0, 0};
+	static double bobtimes[6] = {0, 0, 0, 0, 0, 0};
+	static float lasttimes[6] = {0, 0, 0, 0, 0, 0};
 
 	Vector camAngles, camForward, camRight, camUp;
 	cl_entity_t* pwater;
@@ -530,10 +549,12 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 
 	// transform the view offset by the model's matrix to get the offset from
 	// model origin for the view
-	V_CalcBob(pparams, 1.0f, VB_SIN, bobtimes[0], bobRight, lasttimes[0]);	  // right
-	V_CalcBob(pparams, 2.0f, VB_SIN, bobtimes[1], bobUp, lasttimes[1]);	 // up
-	V_CalcBob(pparams, 0.5f, VB_SIN, bobtimes[2], bobForward, lasttimes[2]);	  // forward
-	V_CalcBob(pparams, 1.0f, VB_COS, bobtimes[3], bobRightCos, lasttimes[3]); // right, cos
+	V_CalcBob(pparams, cycleSpeed * 1.0, VB_SIN, bobtimes[0], bobRight,			lasttimes[0]); // right
+	V_CalcBob(pparams, cycleSpeed * 2.0, VB_SIN, bobtimes[1], bobUp,			lasttimes[1]); // up
+	V_CalcBob(pparams, cycleSpeed * 0.5, VB_SIN, bobtimes[2], bobForward,		lasttimes[2]); // forward
+	V_CalcBob(pparams, cycleSpeed * 1.0, VB_COS, bobtimes[3], bobRightCos,		lasttimes[3]); // right, cos
+	V_CalcBob(pparams, cycleSpeed * 2.0, VB_COS, bobtimes[4], bobUpCos,			lasttimes[4]); // up, cos
+	V_CalcBob(pparams, cycleSpeed * 0.5, VB_COS, bobtimes[5], bobForwardCos,	lasttimes[5]); // forward, cos
 
 	// refresh position
 	VectorCopy(pparams->simorg, pparams->vieworg);
@@ -668,69 +689,131 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 		 i < 3; // but this is actually
 		 i++)   // very readable for me
 	{
-		view->origin[i] += bobRight		* 0.3	* pparams->right[i];    //1
-		view->origin[i] += bobUp		* 0.15	* pparams->up[i];		//2
-		view->origin[i] += bobForward	* 0.0	* pparams->forward[i];	//3
+		view->origin[i] += bobRight		* 0.45	* cl_viewmodel_bob->value * pparams->right[i];    //1
+		view->origin[i] += bobUp		* 0.15	* cl_viewmodel_bob->value * pparams->up[i];		//2
+		view->origin[i] += bobForward	* 0.0	* cl_viewmodel_bob->value * pparams->forward[i];	//3
 	}
 
-	pparams->vieworg[2] -= bobUp * 0.6 * pparams->up[2];
-	view->origin[2] -= bobUp * 0.6 * pparams->up[2];
+	pparams->vieworg[2] -= bobUp * cl_viewmodel_bob->value * pparams->up[2];
+	view->origin[2] -= bobUp * cl_viewmodel_bob->value * pparams->up[2];
 
 	// throw in a little tilt.
+	view->angles[YAW] += bobRightCos * 0.5 * cl_viewmodel_bob->value;
+	view->angles[ROLL] -= bobRightCos * 0.5 * cl_viewmodel_bob->value;
+	view->angles[PITCH] -= bobForwardCos * 0.5 * cl_viewmodel_bob->value;
 
-	//view->angles[YAW] -= bobRightCos * 0.8;
-	view->angles[ROLL] -= bobRightCos * 0.8;
-	//view->angles[PITCH] -= bobRightCos * 1.2;
+	//cs style recoil
+	float recovery = 7.0f;
+	recoilAngle[PITCH] *= (1.0f - recovery * pparams->frametime);
+	recoilAngle[YAW] *= (1.0f - recovery * pparams->frametime);
 
-	int mouseX = 0, mouseY = 0;
-	gEngfuncs.GetMousePosition(&mouseX, &mouseY);
+	static Vector oldViewAngles;
+	static bool firstFrame = true;
+	Vector angleDelta;
+	if (firstFrame)
+	{
+		VectorCopy(pparams->viewangles, oldViewAngles);
+		firstFrame = false;
+	}
 
-	static float blendMouseX = 0.0;
-	static float blendMouseY = 0.0;
+	VectorSubtract(pparams->viewangles, oldViewAngles, angleDelta);
+	// Fix wraparound
+	NormalizeAngles(angleDelta);
+	VectorCopy(pparams->viewangles, oldViewAngles);
+	for (int i = 0; i < 3; i++)
+	{
+		if (angleDelta[i] > 180.0f)
+			angleDelta[i] -= 360.0f;
+		else if (angleDelta[i] < -180.0f)
+			angleDelta[i] += 360.0f;
+	}
+	const float maxYawSway = 8.0f;
+	const float maxPitchSway = 5.5f;
+	angleDelta[YAW] = V_min(V_max(angleDelta[YAW], -maxYawSway), maxYawSway);
+	angleDelta[PITCH] = V_min(V_max(angleDelta[PITCH], -maxPitchSway), maxPitchSway);
 
-	float relMouseX = ((float)(mouseX) / ScreenWidth) - 0.5;
-	float relMouseY = ((float)(mouseY) / ScreenHeight) - 0.5;
-	relMouseX *= 300.0;
-	relMouseY *= 300.0;
+	Vector swizzledangles = Vector(angleDelta[YAW], angleDelta[PITCH], angleDelta.z);
 
-	if (relMouseX > 7.0)
-		relMouseX = 7.0;
-	else if (relMouseX < -7.0)
-		relMouseX = -7.0;
+	UpdateSpring(spring_viewmodel_position, swizzledangles, cl_viewmodel_sway_pos_stiffness->value, cl_viewmodel_sway_pos_dampening->value, pparams->frametime);
+	UpdateSpring(spring_viewmodel_rotation, swizzledangles, cl_viewmodel_sway_rot_stiffness->value, cl_viewmodel_sway_rot_dampening->value, pparams->frametime);
+	UpdateSpring(spring_viewmodel_recoil_position, Vector(0.0f, 0.0f, 0.0f), cl_viewmodel_recoil_pos_stiffness->value, cl_viewmodel_recoil_pos_dampening->value, pparams->frametime);
+	UpdateSpring(spring_viewmodel_recoil_rotation, Vector(0.0f, 0.0f, 0.0f), cl_viewmodel_recoil_rot_stiffness->value, cl_viewmodel_recoil_rot_dampening->value, pparams->frametime);
+	if (!std::isfinite(spring_viewmodel_position.position.x) ||
+		!std::isfinite(spring_viewmodel_position.position.y) ||
+		!std::isfinite(spring_viewmodel_position.position.z))
+	{
+		ResetSpring(spring_viewmodel_position);
+	}
+	if (spring_viewmodel_position.position.Length() > 32.0f)
+	{
+		ResetSpring(spring_viewmodel_position);
+	}
+	if (!std::isfinite(spring_viewmodel_recoil_position.position.x) ||
+		!std::isfinite(spring_viewmodel_recoil_position.position.y) ||
+		!std::isfinite(spring_viewmodel_recoil_position.position.z))
+	{
+		ResetSpring(spring_viewmodel_recoil_position);
+	}
+	if (spring_viewmodel_recoil_position.position.Length() > 32.0f)
+	{
+		ResetSpring(spring_viewmodel_recoil_position);
+	}
 
-	if (relMouseY > 7.0)
-		relMouseY = 7.0;
-	else if (relMouseY < -7.0)
-		relMouseY = -7.0;
+	//springs!
 
-	blendMouseX = relMouseX * 0.1 + blendMouseX * 0.9;
-	blendMouseY = relMouseY * 0.1 + blendMouseY * 0.9;
+	//recoil position
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] += 0.50 * (spring_viewmodel_recoil_position.position.x) * 1.0f * pparams->right[i];
+		view->origin[i] += 0.50 * (spring_viewmodel_recoil_position.position.y) * 1.0f * pparams->up[i];
+		view->origin[i] += 0.50 * (spring_viewmodel_recoil_position.position.z) * 1.0f * pparams->forward[i];
+	}
+	//recoil rotation, position offset
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] += 0.10 * (spring_viewmodel_recoil_rotation.position.x) * 1.0f * pparams->right[i];
+		view->origin[i] += 0.30 * (spring_viewmodel_recoil_rotation.position.y + (spring_viewmodel_recoil_rotation.position.x * 0.75)) * 1.0f * pparams->up[i];
+		view->origin[i] += 0.15 * (spring_viewmodel_recoil_rotation.position.z) * 1.0f * pparams->forward[i];
+	}
+	//recoil rotation, rotation offset
+	view->angles[ROLL] += spring_viewmodel_recoil_rotation.position.x * 1.0f;
+	view->angles[YAW] += spring_viewmodel_recoil_rotation.position.y * 1.0f;
+	view->angles[PITCH] += spring_viewmodel_recoil_rotation.position.z * 1.0f;
 
-	//gEngfuncs.Con_Printf("\nX %3.2f Y %3.2f", blendMouseX, blendMouseY);
+	//sway position
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] += 0.50 * cl_viewmodel_sway_pos->value * (spring_viewmodel_position.position.x) * 1.0f * pparams->right[i];
+		view->origin[i] += 0.50 * cl_viewmodel_sway_pos->value * (spring_viewmodel_position.position.y) * 1.0f * pparams->up[i];
+		view->origin[i] += 0.25 * cl_viewmodel_sway_pos->value * (spring_viewmodel_position.position.y) * 0.5f * pparams->forward[i];
+	}
+	//sway rotation, position offset
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] += 0.20 * cl_viewmodel_sway_rot->value * (spring_viewmodel_rotation.position.x) * 1.0f * pparams->right[i];
+		view->origin[i] += 0.30 * cl_viewmodel_sway_rot->value * (spring_viewmodel_rotation.position.y - (spring_viewmodel_rotation.position.x * 0.75 * cl_viewmodel_sway_pos->value)) * 1.0f * pparams->up[i];
+		view->origin[i] += 0.15 * cl_viewmodel_sway_rot->value * (spring_viewmodel_rotation.position.y) * 1.0f * pparams->forward[i];
+	}
+	//sway rotation, rotation offset
+	view->angles[ROLL] -= spring_viewmodel_rotation.position.x * 1.0f * cl_viewmodel_sway_rot->value;
+	view->angles[YAW] += spring_viewmodel_rotation.position.x * 1.0f * cl_viewmodel_sway_rot->value;
+	view->angles[PITCH] -= spring_viewmodel_rotation.position.y * 1.0f * cl_viewmodel_sway_rot->value;
 
-	view->angles[ROLL] -= blendMouseX * 0.5;
-	//view->angles[YAW] += blendMouseX * 0.5;
-	//view->angles[PITCH] += blendMouseY * 0.5;
+
+	
 
 	// Enables old HL WON view bobbing
 	VectorCopy(view->angles, view->curstate.angles);
 
-	/*if (0 != cl_bobtilt->value)
+	/*if (0 != cl_viewmodel_bobtilt->value)
 	{
 		VectorCopy(view->angles, view->curstate.angles);
 	}*/
 
-	for (int i = 0; i < 3; i++)
-	{
-		view->origin[i] -= 0.5 * blendMouseX * pparams->right[i];
-		view->origin[i] += 0.5 * blendMouseY * pparams->up[i];
-		//view->origin[i] -= 0.5 * blendMouseY * 0.5 * pparams->forward[i];
-	}
-
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
 	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem
 	// with view model distortion, this may be a cause. (SJB).
-	//view->origin[2] -= 1;
+	view->origin[2] -= 1;
 
 	// fudge position around to keep amount of weapon visible
 	// roughly equal with different FOV
@@ -756,6 +839,10 @@ void V_CalcNormalRefdef(struct ref_params_s* pparams)
 
 	// Include client side punch, too
 	VectorAdd(pparams->viewangles, (float*)&ev_punchangle, pparams->viewangles);
+
+	//cs style recoil
+	pparams->viewangles[PITCH] += recoilAngle[PITCH];
+	pparams->viewangles[YAW] += recoilAngle[YAW];
 
 	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
 
@@ -1384,7 +1471,7 @@ void V_GetInEyePos(int target, float* origin, float* angles)
 	}
 	else
 		// exacty eye position can't be caluculated since it depends on
-		// client values like cl_bobcycle, this offset matches the default values
+		// client values like cl_viewmodel_bob_cycle, this offset matches the default values
 		VectorAdd(origin, VEC_VIEW, origin);
 }
 
@@ -1458,21 +1545,21 @@ int V_FindViewModelByWeaponModel(int weaponindex)
 
 	static const char* modelmap[][2] = {
 
-		{"models/p_crossbow.mdl", "models/v_crossbow.mdl"},
-		{"models/p_crowbar.mdl", "models/v_crowbar.mdl"},
-		{"models/p_egon.mdl", "models/v_egon.mdl"},
-		{"models/p_gauss.mdl", "models/v_gauss.mdl"},
-		{"models/p_9mmhandgun.mdl", "models/v_9mmhandgun.mdl"},
-		{"models/p_grenade.mdl", "models/v_grenade.mdl"},
-		{"models/p_hgun.mdl", "models/v_hgun.mdl"},
-		{"models/p_9mmAR.mdl", "models/v_9mmAR.mdl"},
-		{"models/p_357.mdl", "models/v_357.mdl"},
-		{"models/p_rpg.mdl", "models/v_rpg.mdl"},
-		{"models/p_shotgun.mdl", "models/v_shotgun.mdl"},
-		{"models/p_squeak.mdl", "models/v_squeak.mdl"},
-		{"models/p_tripmine.mdl", "models/v_tripmine.mdl"},
-		{"models/p_satchel_radio.mdl", "models/v_satchel_radio.mdl"},
-		{"models/p_satchel.mdl", "models/v_satchel.mdl"},
+		{"models/weapons/crossbow/p_crossbow.mdl",		"models/weapons/crossbow/v_crossbow.mdl"},
+		{"models/weapons/crowbar/p_crowbar.mdl",		"models/weapons/crowbar/v_crowbar.mdl"},
+		{"models/weapons/egon/p_egon.mdl",				"models/weapons/egon/v_egon.mdl"},
+		{"models/weapons/gauss/p_gauss.mdl",			"models/weapons/gauss/v_gauss.mdl"},
+		{"models/weapons/g17/p_9mmhandgun.mdl",			"models/weapons/g17/v_9mmhandgun.mdl"},
+		{"models/weapons/grenade/p_grenade.mdl",		"models/weapons/grenade/v_grenade.mdl"},
+		{"models/weapons/hgun/p_hgun.mdl",				"models/weapons/hgun/v_hgun.mdl"},
+		{"models/weapons/mp5/p_9mmAR.mdl",				"models/weapons/mp5/v_9mmAR.mdl"},
+		{"models/weapons/python/p_357.mdl",				"models/weapons/python/v_357.mdl"},
+		{"models/weapons/rpg/p_rpg.mdl",				"models/weapons/rpg/v_rpg.mdl"},
+		{"models/weapons/spas12/p_shotgun.mdl",			"models/weapons/spas12/v_shotgun.mdl"},
+		{"models/weapons/snark/p_squeak.mdl",			"models/weapons/snark/v_squeak.mdl"},
+		{"models/weapons/tripmine/p_tripmine.mdl",		"models/weapons/tripmine/v_tripmine.mdl"},
+		{"models/weapons/satchel/p_satchel_radio.mdl",	"models/weapons/satchel/v_satchel_radio.mdl"},
+		{"models/weapons/satchel/p_satchel.mdl",		"models/weapons/satchel/v_satchel.mdl"},
 		{NULL, NULL}};
 
 	struct model_s* weaponModel = IEngineStudio.GetModelByIndex(weaponindex);
@@ -1728,7 +1815,7 @@ V_DropPunchAngle
 */
 void V_DropPunchAngle(float frametime, float* ev_punchangle)
 {
-	float len;
+	/* float len;
 
 	len = VectorNormalize(ev_punchangle);
 
@@ -1738,7 +1825,13 @@ void V_DropPunchAngle(float frametime, float* ev_punchangle)
 	//len = V_max(len, 0.0);
 
 	len = 0.0 * 0.05 + len * 0.95;
-	VectorScale(ev_punchangle, len, ev_punchangle);
+	VectorScale(ev_punchangle, len, ev_punchangle);*/
+
+    float decay = 0.9f;
+
+    ev_punchangle[0] *= decay;
+    ev_punchangle[1] *= decay;
+    ev_punchangle[2] *= decay;
 }
 
 /*
@@ -1751,6 +1844,21 @@ Adjusts aim to simulate muzzle rise
 void V_Recoil(float recoil)
 {
 	v_client_aimangles[4] += recoil;
+}
+void V_AddRecoil(Vector angle)
+{
+	float roll = angle.x;
+	float yaw = angle.y;
+	float pitch = angle.z;
+
+	ev_punchangle[ROLL] += roll;
+	ev_punchangle[YAW] += yaw;
+	ev_punchangle[PITCH] += pitch;
+};
+void V_CSStyleRecoil(float pitch, float yaw)
+{
+	recoilAngle[PITCH] -= pitch;
+	recoilAngle[YAW] += yaw;
 }
 
 /*
@@ -1781,9 +1889,23 @@ void V_Init()
 	v_centermove = gEngfuncs.pfnRegisterVariable("v_centermove", "0.15", 0);
 	v_centerspeed = gEngfuncs.pfnRegisterVariable("v_centerspeed", "500", 0);
 
-	cl_bobcycle = gEngfuncs.pfnRegisterVariable("cl_bobcycle", "0.8", 0); // best default for my experimental gun wag (sjb)
-	cl_bob = gEngfuncs.pfnRegisterVariable("cl_bob", "0.01", 0);		  // best default for my experimental gun wag (sjb)
-	cl_bobup = gEngfuncs.pfnRegisterVariable("cl_bobup", "0.5", 0);
+	cl_viewmodel_bob_cycle = gEngfuncs.pfnRegisterVariable("cl_viewmodel_bob_cycle", "0.875", 0); // best default for my experimental gun wag (sjb)
+	cl_viewmodel_bob = gEngfuncs.pfnRegisterVariable("cl_viewmodel_bob", "1.0", 0);		  // best default for my experimental gun wag (sjb)
+
+	cl_viewmodel_recoil_pos_stiffness = gEngfuncs.pfnRegisterVariable("cl_viewmodel_recoil_pos_stiffness", "200.0", 0);
+	cl_viewmodel_recoil_pos_dampening = gEngfuncs.pfnRegisterVariable("cl_viewmodel_recoil_pos_dampening", "12.0", 0);
+
+	cl_viewmodel_recoil_rot_stiffness = gEngfuncs.pfnRegisterVariable("cl_viewmodel_recoil_rot_stiffness", "300.0", 0);
+	cl_viewmodel_recoil_rot_dampening = gEngfuncs.pfnRegisterVariable("cl_viewmodel_recoil_rot_dampening", "20.0", 0);
+
+	cl_viewmodel_sway_pos = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_pos", "1.0", 0);
+	cl_viewmodel_sway_pos_stiffness = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_pos_stiffness", "120.0", 0);
+	cl_viewmodel_sway_pos_dampening = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_pos_dampening", "16.0", 0);
+
+	cl_viewmodel_sway_rot = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_rot", "1.0", 0);
+	cl_viewmodel_sway_rot_stiffness = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_rot_stiffness", "300.0", 0);
+	cl_viewmodel_sway_rot_dampening = gEngfuncs.pfnRegisterVariable("cl_viewmodel_sway_rot_dampening", "20.0", 0);
+
 	cl_waterdist = gEngfuncs.pfnRegisterVariable("cl_waterdist", "4", 0);
 	cl_chasedist = gEngfuncs.pfnRegisterVariable("cl_chasedist", "112", 0);
 }

@@ -33,7 +33,7 @@ void CMP5::Spawn()
 {
 	pev->classname = MAKE_STRING("weapon_9mmAR"); // hack to allow for old names
 	Precache();
-	SET_MODEL(ENT(pev), "models/w_9mmAR.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/mp5/w_9mmAR.mdl");
 	m_iId = WEAPON_MP5;
 
 	m_iDefaultAmmo = MP5_DEFAULT_GIVE;
@@ -44,31 +44,16 @@ void CMP5::Spawn()
 
 void CMP5::Precache()
 {
-	PRECACHE_MODEL("models/v_9mmAR.mdl");
-	PRECACHE_MODEL("models/w_9mmAR.mdl");
-	PRECACHE_MODEL("models/p_9mmAR.mdl");
+	PRECACHE_MODEL("models/weapons/mp5/v_9mmAR.mdl");
+	PRECACHE_MODEL("models/weapons/mp5/w_9mmAR.mdl");
+	PRECACHE_MODEL("models/weapons/mp5/p_9mmAR.mdl");
 
 	m_iShell = PRECACHE_MODEL("models/shells/9x19mm.mdl"); // brass shellTE_MODEL
 
 	PRECACHE_MODEL("models/grenade.mdl"); // grenade
 
-	PRECACHE_MODEL("models/w_9mmARclip.mdl");
+	PRECACHE_MODEL("models/weapons/ammo/w_9mmARclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");
-
-	PRECACHE_SOUND("weapons/mp5/mp5_stockrelease.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_stockmove.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_stockclick.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_selector.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_diometer.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_foley1.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_foley2.wav");
-	
-	PRECACHE_SOUND("weapons/mp5/mp5_boltback.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_boltup.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_magout.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_magfumble.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_magin.wav");
-	PRECACHE_SOUND("weapons/mp5/mp5_boltslap.wav");
 
 	PRECACHE_SOUND("weapons/mp5/mp5_fire1.wav"); // H to the K
 	PRECACHE_SOUND("weapons/mp5/mp5_fire2.wav"); // H to the K
@@ -102,7 +87,7 @@ bool CMP5::GetItemInfo(ItemInfo* p)
 
 bool CMP5::Deploy()
 {
-	return DefaultDeploy("models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5");
+	return DefaultDeploy("models/weapons/mp5/v_9mmAR.mdl", "models/weapons/mp5/p_9mmAR.mdl", MP5_DEPLOY, "mp5");
 }
 
 
@@ -166,7 +151,7 @@ void CMP5::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", false, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(1.0 / 35.0 * 3.0); //3 doom tics, bit easier to remember the timing of
+	m_flNextPrimaryAttack = GetNextAttackDelay(1.0 / 35.0 * 2.5); //3 doom tics, bit easier to remember the timing of
 
 	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase())
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.07;
@@ -281,12 +266,12 @@ class CMP5AmmoClip : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_9mmARclip.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_9mmARclip.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_9mmARclip.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_9mmARclip.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override
@@ -309,12 +294,12 @@ class CMP5Chainammo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_chainammo.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_chainammo.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_chainammo.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_chainammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override
@@ -335,12 +320,12 @@ class CMP5AmmoGrenade : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_ARgrenade.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_ARgrenade.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_ARgrenade.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_ARgrenade.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

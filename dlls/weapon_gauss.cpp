@@ -48,7 +48,7 @@ void CGauss::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_GAUSS;
-	SET_MODEL(ENT(pev), "models/w_gauss.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/gauss/w_gauss.mdl");
 
 	m_iDefaultAmmo = GAUSS_DEFAULT_GIVE;
 
@@ -58,9 +58,9 @@ void CGauss::Spawn()
 
 void CGauss::Precache()
 {
-	PRECACHE_MODEL("models/w_gauss.mdl");
-	PRECACHE_MODEL("models/v_gauss.mdl");
-	PRECACHE_MODEL("models/p_gauss.mdl");
+	PRECACHE_MODEL("models/weapons/gauss/w_gauss.mdl");
+	PRECACHE_MODEL("models/weapons/gauss/v_gauss.mdl");
+	PRECACHE_MODEL("models/weapons/gauss/p_gauss.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -98,7 +98,7 @@ bool CGauss::GetItemInfo(ItemInfo* p)
 bool CGauss::Deploy()
 {
 	m_pPlayer->m_flPlayAftershock = 0.0;
-	return DefaultDeploy("models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW, "gauss");
+	return DefaultDeploy("models/weapons/gauss/v_gauss.mdl", "models/weapons/gauss/p_gauss.mdl", GAUSS_DRAW, "gauss");
 }
 
 void CGauss::Holster()
@@ -351,7 +351,7 @@ void CGauss::StartFire()
 
 		if (!m_fPrimaryFire)
 		{
-			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * flDamage * 5;
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * flDamage * 25;
 		}
 
 		if (!g_pGameRules->IsMultiplayer())
@@ -366,7 +366,7 @@ void CGauss::StartFire()
 	}
 
 	// time until aftershock 'static discharge' sound
-	m_pPlayer->m_flPlayAftershock = gpGlobals->time + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0.3, 0.8);
+	//m_pPlayer->m_flPlayAftershock = gpGlobals->time + UTIL_SharedRandomFloat(m_pPlayer->random_seed, 1.0, 1.5);
 
 	Fire(vecSrc, vecAiming, flDamage);
 }
@@ -626,12 +626,12 @@ class CGaussAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_gaussammo.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_gaussammo.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_gaussammo.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_gaussammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "parsemsg.h"
+#include <hud_sprite_filter.h>
 
 DECLARE_MESSAGE(m_AmmoSecondary, SecAmmoVal);
 DECLARE_MESSAGE(m_AmmoSecondary, SecAmmoIcon);
@@ -77,8 +78,17 @@ bool CHudAmmoSecondary::Draw(float flTime)
 		x -= (gHUD.GetSpriteRect(m_HUD_ammoicon).right - gHUD.GetSpriteRect(m_HUD_ammoicon).left);
 		y -= (gHUD.GetSpriteRect(m_HUD_ammoicon).top - gHUD.GetSpriteRect(m_HUD_ammoicon).bottom);
 
-		SPR_Set(gHUD.GetSprite(m_HUD_ammoicon), r, g, b);
-		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_ammoicon));
+		//SPR_Set(gHUD.GetSprite(m_HUD_ammoicon), r, g, b);
+		//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_ammoicon));
+		DrawHudSpriteAdditiveNearest(
+			gHUD.GetSprite(m_HUD_ammoicon),
+			0,
+			x,
+			y,
+			&gHUD.GetSpriteRect(m_HUD_ammoicon),
+			r,
+			g,
+			b);
 	}
 	else
 	{ // move the cursor by the '0' char instead, since we don't have an icon to work with

@@ -952,6 +952,7 @@ void ClientPrecache()
 
 	// player gib sounds
 	PRECACHE_SOUND("common/bodysplat.wav");
+	PRECACHE_SOUND("common/bodysplat2.wav");
 
 	// player pain sounds
 	PRECACHE_SOUND("player/pl_pain2.wav");

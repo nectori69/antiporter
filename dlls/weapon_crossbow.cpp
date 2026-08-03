@@ -227,7 +227,7 @@ void CCrossbow::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_CROSSBOW;
-	SET_MODEL(ENT(pev), "models/w_crossbow.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/crossbow/w_crossbow.mdl");
 
 	m_iDefaultAmmo = CROSSBOW_DEFAULT_GIVE;
 
@@ -236,9 +236,9 @@ void CCrossbow::Spawn()
 
 void CCrossbow::Precache()
 {
-	PRECACHE_MODEL("models/w_crossbow.mdl");
-	PRECACHE_MODEL("models/v_crossbow.mdl");
-	PRECACHE_MODEL("models/p_crossbow.mdl");
+	PRECACHE_MODEL("models/weapons/crossbow/w_crossbow.mdl");
+	PRECACHE_MODEL("models/weapons/crossbow/v_crossbow.mdl");
+	PRECACHE_MODEL("models/weapons/crossbow/p_crossbow.mdl");
 
 	PRECACHE_SOUND("weapons/xbow_fire1.wav");
 	PRECACHE_SOUND("weapons/xbow_reload1.wav");
@@ -270,8 +270,8 @@ bool CCrossbow::GetItemInfo(ItemInfo* p)
 bool CCrossbow::Deploy()
 {
 	if (0 != m_iClip)
-		return DefaultDeploy("models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW1, "bow");
-	return DefaultDeploy("models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW2, "bow");
+		return DefaultDeploy("models/weapons/crossbow/v_crossbow.mdl", "models/weapons/crossbow/p_crossbow.mdl", CROSSBOW_DRAW1, "bow");
+	return DefaultDeploy("models/weapons/crossbow/v_crossbow.mdl", "models/weapons/crossbow/p_crossbow.mdl", CROSSBOW_DRAW2, "bow");
 }
 
 void CCrossbow::Holster()
@@ -495,12 +495,12 @@ class CCrossbowAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_crossbow_clip.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_crossbow_clip.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_crossbow_clip.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_crossbow_clip.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

@@ -247,17 +247,24 @@ int TrainSpeed(int iSpeed, int iMax)
 
 void CBasePlayer::DeathSound()
 {
-	// water death sounds
-	/*
 	if (pev->waterlevel == 3)
 	{
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/h2odeath.wav", 1, ATTN_NONE);
-		return;
+		switch (RANDOM_LONG(1, 3))
+		{
+		case 1:
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_drown1.wav", 1, ATTN_NONE);
+			break;
+		case 2:
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_drown2.wav", 1, ATTN_NONE);
+			break;
+		case 3:
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_drown3.wav", 1, ATTN_NONE);
+			break;
+		}
 	}
-	*/
 
 	// temporarily using pain sounds for death sounds
-	switch (RANDOM_LONG(1, 5))
+	switch (RANDOM_LONG(1, 3))
 	{
 	case 1:
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_pain5.wav", 1, ATTN_NORM);
@@ -2543,7 +2550,15 @@ void CBasePlayer::PostThink()
 			if (flFallDamage > pev->health)
 			{ //splat
 				// note: play on item channel because we play footstep landing on body channel
-				EMIT_SOUND(ENT(pev), CHAN_ITEM, "common/bodysplat.wav", 1, ATTN_NORM);
+				switch (RANDOM_LONG(1, 2))
+				{
+				case 1:
+					EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
+					break;
+				case 2:
+					EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat2.wav", 1, ATTN_NORM);
+					break;
+				}
 			}
 
 			if (flFallDamage > 0)
@@ -3546,6 +3561,7 @@ void CBasePlayer::CheatImpulseCommands(int iImpulse)
 		GiveNamedItem("weapon_m4");
 		GiveNamedItem("weapon_bdrifle");
 		GiveNamedItem("weapon_duke4pistol");
+		GiveNamedItem("weapon_m1911");
 		
 
 		gEvilImpulse101 = false;

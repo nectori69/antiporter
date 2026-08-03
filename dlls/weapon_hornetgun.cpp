@@ -41,7 +41,7 @@ void CHgun::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_HORNETGUN;
-	SET_MODEL(ENT(pev), "models/w_hgun.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/hgun/w_hgun.mdl");
 
 	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE;
 	m_iFirePhase = 0;
@@ -52,9 +52,9 @@ void CHgun::Spawn()
 
 void CHgun::Precache()
 {
-	PRECACHE_MODEL("models/v_hgun.mdl");
-	PRECACHE_MODEL("models/w_hgun.mdl");
-	PRECACHE_MODEL("models/p_hgun.mdl");
+	PRECACHE_MODEL("models/weapons/hgun/v_hgun.mdl");
+	PRECACHE_MODEL("models/weapons/hgun/w_hgun.mdl");
+	PRECACHE_MODEL("models/weapons/hgun/p_hgun.mdl");
 
 	m_usHornetFire = PRECACHE_EVENT(1, "events/firehornet.sc");
 
@@ -94,7 +94,7 @@ bool CHgun::GetItemInfo(ItemInfo* p)
 
 bool CHgun::Deploy()
 {
-	return DefaultDeploy("models/v_hgun.mdl", "models/p_hgun.mdl", HGUN_UP, "hive");
+	return DefaultDeploy("models/weapons/hgun/v_hgun.mdl", "models/weapons/hgun/p_hgun.mdl", HGUN_UP, "hive");
 }
 
 void CHgun::Holster()

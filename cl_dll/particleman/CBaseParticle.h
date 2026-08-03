@@ -35,6 +35,9 @@ private:
 	float m_flPlayerDistance; //Used for sorting the particles, DO NOT TOUCH.
 
 public:
+	void SetRenderFlags(int flags);
+	void SetCollisionFlags(int flags);
+
 	void* operator new(size_t size)
 	{
 		return CMiniMem::Instance()->Allocate(size);
@@ -156,10 +159,12 @@ public:
 		m_flNextPVSCheck = flTime;
 	}
 
+	/*
 	void SetCollisionFlags(int iFlag)
 	{
 		m_iCollisionFlags |= iFlag;
-	}
+	} 
+	*/
 
 	void ClearCollisionFlags(int iFlag)
 	{
@@ -171,10 +176,12 @@ public:
 		return m_iCollisionFlags;
 	}
 
+	/*
 	void SetRenderFlag(int iFlag)
 	{
 		m_iRenderFlags |= iFlag;
 	}
+	*/
 
 	float GetPlayerDistance() const { return m_flPlayerDistance; }
 	void SetPlayerDistance(float flDistance) { m_flPlayerDistance = flDistance; }

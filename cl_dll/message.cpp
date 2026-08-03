@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "parsemsg.h"
+#include <hud_sprite_filter.h>
 
 DECLARE_MESSAGE(m_Message, HudText)
 DECLARE_MESSAGE(m_Message, GameTitle)
@@ -345,11 +346,29 @@ bool CHudMessage::Draw(float fTime)
 			int y = YPosition(m_pGameTitle->y, fullHeight);
 
 
-			SPR_Set(gHUD.GetSprite(m_HUD_title_half), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1);
-			SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_title_half));
+			//SPR_Set(gHUD.GetSprite(m_HUD_title_half), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1);
+			//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_title_half));
+			DrawHudSpriteAdditiveNearest(
+				gHUD.GetSprite(m_HUD_title_half),
+				0,
+				x,
+				y,
+				&gHUD.GetSpriteRect(m_HUD_title_half),
+				brightness * m_pGameTitle->r1,
+				brightness * m_pGameTitle->g1,
+				brightness * m_pGameTitle->b1);
 
-			SPR_Set(gHUD.GetSprite(m_HUD_title_life), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1);
-			SPR_DrawAdditive(0, x + halfWidth, y, &gHUD.GetSpriteRect(m_HUD_title_life));
+			//SPR_Set(gHUD.GetSprite(m_HUD_title_life), brightness * m_pGameTitle->r1, brightness * m_pGameTitle->g1, brightness * m_pGameTitle->b1);
+			//SPR_DrawAdditive(0, x + halfWidth, y, &gHUD.GetSpriteRect(m_HUD_title_life));
+			DrawHudSpriteAdditiveNearest(
+				gHUD.GetSprite(m_HUD_title_life),
+				0,
+				x + halfWidth,
+				y,
+				&gHUD.GetSpriteRect(m_HUD_title_life),
+				brightness * m_pGameTitle->r1,
+				brightness * m_pGameTitle->g1,
+				brightness * m_pGameTitle->b1);
 
 			drawn = 1;
 		}

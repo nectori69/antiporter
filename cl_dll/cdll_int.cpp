@@ -40,8 +40,9 @@ cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 TeamFortressViewport* gViewPort = NULL;
 
-
 #include "particleman.h"
+#include <particle_util.h>
+
 IParticleMan* g_pParticleMan = nullptr;
 
 void CL_LoadParticleMan();
@@ -148,6 +149,8 @@ int DLLEXPORT HUD_VidInit()
 	gHUD.VidInit();
 
 	VGui_Startup();
+
+	ParticleUtil_Init();
 
 	return 1;
 }

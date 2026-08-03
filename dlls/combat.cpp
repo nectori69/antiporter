@@ -305,10 +305,10 @@ void CBaseMonster::GibMonster()
 	switch (RANDOM_LONG(1, 2))
 	{
 	case 1:
-		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
+		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 2, ATTN_NORM);
 		break;
 	case 2:
-		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat2.wav", 1, ATTN_NORM);
+		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat2.wav", 2, ATTN_NORM);
 		break;
 	}
 
@@ -1580,6 +1580,10 @@ Vector CBaseEntity::FireBulletsPlayer(unsigned int cShots, Vector vecSrc, Vector
 
 				case BULLET_PLAYER_M92:
 					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgM92, vecDir, &tr, DMG_BULLET);
+					break;
+
+				case BULLET_PLAYER_1911:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg1911, vecDir, &tr, DMG_BULLET);
 					break;
 
 				case BULLET_NONE: // FIX

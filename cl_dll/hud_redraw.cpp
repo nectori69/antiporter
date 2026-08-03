@@ -19,6 +19,7 @@
 #include "cl_util.h"
 
 #include "vgui_TeamFortressViewport.h"
+#include <hud_sprite_filter.h>
 
 #define MAX_LOGO_FRAMES 56
 
@@ -167,7 +168,7 @@ bool CHud::Redraw(float flTime, bool intermission)
 		if (m_hsprLogo == 0)
 			m_hsprLogo = LoadSprite("sprites/%d_logo.spr");
 
-		SPR_Set(m_hsprLogo, 250, 250, 250);
+		//SPR_Set(m_hsprLogo, 250, 250, 250);
 
 		x = SPR_Width(m_hsprLogo, 0);
 		x = ScreenWidth - x;
@@ -177,7 +178,16 @@ bool CHud::Redraw(float flTime, bool intermission)
 		int iFrame = (int)(flTime * 20) % MAX_LOGO_FRAMES;
 		i = grgLogoFrame[iFrame] - 1;
 
-		SPR_DrawAdditive(i, x, y, NULL);
+		//SPR_DrawAdditive(i, x, y, NULL);
+		DrawHudSpriteAdditiveNearest(
+			m_hsprLogo,
+			i,
+			x,
+			y,
+			NULL,
+			250,
+			250,
+			250);
 	}
 
 	/*
@@ -242,8 +252,17 @@ int CHud::DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int
 		if (iNumber >= 100)
 		{
 			k = iNumber / 100;
-			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
-			SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			//SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
+			//SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			DrawHudSpriteAdditiveNearest(
+				GetSprite(m_HUD_number_0 + k),
+				0,
+				x,
+				y,
+				&GetSpriteRect(m_HUD_number_0 + k),
+				r,
+				g,
+				b);
 			x += iWidth;
 		}
 		else if ((iFlags & DHN_3DIGITS) != 0)
@@ -256,8 +275,17 @@ int CHud::DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int
 		if (iNumber >= 10)
 		{
 			k = (iNumber % 100) / 10;
-			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
-			SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			//SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
+			//SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			DrawHudSpriteAdditiveNearest(
+				GetSprite(m_HUD_number_0 + k),
+				0,
+				x,
+				y,
+				&GetSpriteRect(m_HUD_number_0 + k),
+				r,
+				g,
+				b);
 			x += iWidth;
 		}
 		else if ((iFlags & (DHN_3DIGITS | DHN_2DIGITS)) != 0)
@@ -268,8 +296,17 @@ int CHud::DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int
 
 		// SPR_Draw ones
 		k = iNumber % 10;
-		SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
-		SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+		//SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b);
+		//SPR_DrawAdditive(0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+		DrawHudSpriteAdditiveNearest(
+			GetSprite(m_HUD_number_0 + k),
+			0,
+			x,
+			y,
+			&GetSpriteRect(m_HUD_number_0 + k),
+			r,
+			g,
+			b);
 		x += iWidth;
 	}
 	else if ((iFlags & DHN_DRAWZERO) != 0)

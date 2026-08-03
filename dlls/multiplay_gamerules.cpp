@@ -163,6 +163,8 @@ void CHalfLifeMultiplay::RefreshSkillData()
 	gSkillData.plrDmgM4 = 15;
 	// m92
 	gSkillData.plrDmgM92 = 14;
+	// m1911
+	gSkillData.plrDmg1911 = 27;
 }
 
 // longest the intermission can last, in seconds

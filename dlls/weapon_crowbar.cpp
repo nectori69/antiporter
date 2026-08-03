@@ -31,7 +31,7 @@ void CCrowbar::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_CROWBAR;
-	SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/crowbar/w_crowbar.mdl");
 	m_iClip = -1;
 
 	FallInit(); // get ready to fall down.
@@ -40,15 +40,16 @@ void CCrowbar::Spawn()
 
 void CCrowbar::Precache()
 {
-	PRECACHE_MODEL("models/v_crowbar.mdl");
-	PRECACHE_MODEL("models/w_crowbar.mdl");
-	PRECACHE_MODEL("models/p_crowbar.mdl");
-	PRECACHE_SOUND("weapons/cbar_hit1.wav");
-	PRECACHE_SOUND("weapons/cbar_hit2.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod2.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod3.wav");
-	PRECACHE_SOUND("weapons/cbar_miss1.wav");
+	PRECACHE_MODEL("models/weapons/crowbar/v_crowbar.mdl");
+	PRECACHE_MODEL("models/weapons/crowbar/w_crowbar.mdl");
+	PRECACHE_MODEL("models/weapons/crowbar/p_crowbar.mdl");
+	PRECACHE_SOUND("weapons/crowbar/cbar_miss1.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_miss2.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_hit1.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_hit2.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_hitbod1.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_hitbod2.wav");
+	PRECACHE_SOUND("weapons/crowbar/cbar_hitbod3.wav");
 
 	m_usCrowbar = PRECACHE_EVENT(1, "events/crowbar.sc");
 }
@@ -72,7 +73,7 @@ bool CCrowbar::GetItemInfo(ItemInfo* p)
 
 bool CCrowbar::Deploy()
 {
-	return DefaultDeploy("models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW, "crowbar");
+	return DefaultDeploy("models/weapons/crowbar/v_crowbar.mdl", "models/weapons/crowbar/p_crowbar.mdl", CROWBAR_DRAW, "crowbar");
 }
 
 void CCrowbar::Holster()
@@ -251,13 +252,13 @@ bool CCrowbar::Swing(bool fFirst)
 				switch (RANDOM_LONG(0, 2))
 				{
 				case 0:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod1.wav", 1, ATTN_NORM);
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/crowbar/cbar_hitbod1.wav", 1, ATTN_NORM);
 					break;
 				case 1:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod2.wav", 1, ATTN_NORM);
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/crowbar/cbar_hitbod2.wav", 1, ATTN_NORM);
 					break;
 				case 2:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod3.wav", 1, ATTN_NORM);
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/crowbar/cbar_hitbod3.wav", 1, ATTN_NORM);
 					break;
 				}
 				m_pPlayer->m_iWeaponVolume = CROWBAR_BODYHIT_VOLUME;
@@ -289,10 +290,10 @@ bool CCrowbar::Swing(bool fFirst)
 			switch (RANDOM_LONG(0, 1))
 			{
 			case 0:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
+				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/crowbar/cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
 				break;
 			case 1:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
+				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/crowbar/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0, 3));
 				break;
 			}
 

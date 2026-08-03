@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <hud_sprite_filter.h>
 
 
 
@@ -121,15 +122,33 @@ bool CHudFlashlight::Draw(float flTime)
 	x = ScreenWidth - m_iWidth - m_iWidth / 2;
 
 	// Draw the flashlight casing
-	SPR_Set(m_hSprite1, r, g, b);
-	SPR_DrawAdditive(0, x, y, m_prc1);
+	//SPR_Set(m_hSprite1, r, g, b);
+	//SPR_DrawAdditive(0, x, y, m_prc1);
+	DrawHudSpriteAdditiveNearest(
+		m_hSprite1,
+		0,
+		x,
+		y,
+		m_prc1,
+		r,
+		g,
+		b);
 
 	if (m_fOn)
 	{ // draw the flashlight beam
 		x = ScreenWidth - m_iWidth / 2;
 
-		SPR_Set(m_hBeam, r, g, b);
-		SPR_DrawAdditive(0, x, y, m_prcBeam);
+		//SPR_Set(m_hBeam, r, g, b);
+		//SPR_DrawAdditive(0, x, y, m_prcBeam);
+		DrawHudSpriteAdditiveNearest(
+			m_hBeam,
+			0,
+			x,
+			y,
+			m_prcBeam,
+			r,
+			g,
+			b);
 	}
 
 	// draw the flashlight energy level
@@ -140,8 +159,17 @@ bool CHudFlashlight::Draw(float flTime)
 		rc = *m_prc2;
 		rc.left += iOffset;
 
-		SPR_Set(m_hSprite2, r, g, b);
-		SPR_DrawAdditive(0, x + iOffset, y, &rc);
+		//SPR_Set(m_hSprite2, r, g, b);
+		//SPR_DrawAdditive(0, x + iOffset, y, &rc);
+		DrawHudSpriteAdditiveNearest(
+			m_hSprite2,
+			0,
+			x + iOffset,
+			y,
+			&rc,
+			r,
+			g,
+			b);
 	}
 
 

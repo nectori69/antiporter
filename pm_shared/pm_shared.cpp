@@ -2870,15 +2870,18 @@ void PM_CheckFalling()
 		{
 			// NOTE:  In the original game dll , there were no breaks after these cases, causing the first one to
 			// cascade into the second
-			//switch ( RandomLong(0,1) )
-			//{
-			//case 0:
-			//pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain2.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			//break;
-			//case 1:
-			pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM);
-			//	break;
-			//}
+			switch (pmove->RandomLong(0, 2))
+			{
+			case 0:
+				pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+				break;
+			case 1:
+				pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain2.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+				break;
+			case 2:
+				pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+				break;
+			}
 			fvol = 1.0;
 		}
 		else if (pmove->flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED / 2)
@@ -2887,7 +2890,18 @@ void PM_CheckFalling()
 
 			if (tfc)
 			{
-				pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+				switch (pmove->RandomLong(0, 2))
+				{
+				case 0:
+					pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+					break;
+				case 1:
+					pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain2.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+					break;
+				case 2:
+					pmove->PM_PlaySound(CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+					break;
+				}
 			}
 
 			fvol = 0.85;

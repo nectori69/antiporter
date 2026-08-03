@@ -28,7 +28,7 @@ void CGlock::Spawn()
 	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
 	Precache();
 	m_iId = WEAPON_GLOCK;
-	SET_MODEL(ENT(pev), "models/w_9mmhandgun.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/g17/w_9mmhandgun.mdl");
 
 	m_iDefaultAmmo = GLOCK_DEFAULT_GIVE;
 
@@ -38,9 +38,9 @@ void CGlock::Spawn()
 
 void CGlock::Precache()
 {
-	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/w_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/weapons/g17/v_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/weapons/g17/w_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/weapons/g17/p_9mmhandgun.mdl");
 
 	m_iShell = PRECACHE_MODEL("models/shells/9x19mm.mdl"); // brass shell
 
@@ -76,12 +76,12 @@ bool CGlock::Deploy()
 {
 	TriggerReleased = false; // added
 	// pev->body = 1;
-	return DefaultDeploy("models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded");
+	return DefaultDeploy("models/weapons/g17/v_9mmhandgun.mdl", "models/weapons/g17/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded");
 }
 
 void CGlock::SecondaryAttack()
 {
-	GlockFire(0.1, 0.1, false);
+	GlockFire(0.1, 0.06, false);
 }
 
 void CGlock::PrimaryAttack()
@@ -227,12 +227,12 @@ class CGlockAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_9mmclip.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_9mmclip.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_9mmclip.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_9mmclip.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

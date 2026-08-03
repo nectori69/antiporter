@@ -30,6 +30,15 @@
 #include "pm_defs.h"
 #include "pmtrace.h"
 
+void CBaseParticle::SetRenderFlags(int flags)
+{
+	m_iRenderFlags = flags;
+}
+void CBaseParticle::SetCollisionFlags(int flags)
+{
+	m_iCollisionFlags = flags;
+}
+
 void CBaseParticle::InitializeSprite(Vector org, Vector normal, model_s* sprite, float size, float brightness)
 {
 	m_flSize = m_flOriginalSize = 10;
@@ -155,70 +164,142 @@ void CBaseParticle::Draw()
 		return;
 	}
 
-	Vector vColor;
-	float intensity = 0.0;
+	Vector worldLight(255.0f, 255.0f, 255.0f);
+	Vector resultColor = m_vColor;
 
 	if ((m_iRenderFlags & LIGHT_NONE) == 0)
 	{
-		gEngfuncs.pTriAPI->LightAtPoint(m_vOrigin, vColor);
+		gEngfuncs.pTriAPI->LightAtPoint(
+			m_vOrigin,
+			worldLight);
 
-		intensity = (vColor.x + vColor.y + vColor.z) / 3.0;
+		if ((m_iRenderFlags & LIGHT_COLOR) != 0)
+		{
+			const float minimumLight = 0.25f;
+
+			resultColor.x =
+				m_vColor.x *
+				std::max(
+					minimumLight,
+					worldLight.x / 255.0f);
+
+			resultColor.y =
+				m_vColor.y *
+				std::max(
+					minimumLight,
+					worldLight.y / 255.0f);
+
+			resultColor.z =
+				m_vColor.z *
+				std::max(
+					minimumLight,
+					worldLight.z / 255.0f);
+		}
+		else if ((m_iRenderFlags & LIGHT_INTENSITY) != 0)
+		{
+			float intensity =
+				(worldLight.x +
+					worldLight.y +
+					worldLight.z) /
+				(255.0f * 3.0f);
+
+			intensity =
+				std::max(
+					0.25f,
+					intensity);
+
+			resultColor = m_vColor * intensity;
+		}
 	}
 
-	if ((m_iRenderFlags & (RENDER_FACEPLAYER | RENDER_FACEPLAYER_ROTATEZ)) != 0)
+	resultColor.x =
+		std::clamp(resultColor.x, 0.0f, 255.0f);
+
+	resultColor.y =
+		std::clamp(resultColor.y, 0.0f, 255.0f);
+
+	resultColor.z =
+		std::clamp(resultColor.z, 0.0f, 255.0f);
+
+	if ((m_iRenderFlags &
+			(RENDER_FACEPLAYER |
+				RENDER_FACEPLAYER_ROTATEZ)) != 0)
 	{
 		m_vAngles.x = g_vViewAngles.x;
 		m_vAngles.y = g_vViewAngles.y;
 
-		if ((m_iRenderFlags & RENDER_FACEPLAYER_ROTATEZ) == 0)
+		if ((m_iRenderFlags &
+				RENDER_FACEPLAYER_ROTATEZ) == 0)
 		{
 			m_vAngles.z = g_vViewAngles.z;
 		}
 	}
 
-	Vector resultColor;
+	Vector forward;
+	Vector right;
+	Vector up;
 
-	if ((m_iRenderFlags & LIGHT_NONE) != 0)
-	{
-		resultColor = m_vColor;
-	}
-	else if ((m_iRenderFlags & LIGHT_COLOR) != 0)
-	{
-		resultColor.x = vColor.x / (m_vColor.x * 255);
-		resultColor.y = vColor.y / (m_vColor.y * 255);
-		resultColor.z = vColor.z / (m_vColor.z * 255);
-	}
-	else if ((m_iRenderFlags & LIGHT_INTENSITY) != 0)
-	{
-		resultColor.x = intensity / (m_vColor.x * 255);
-		resultColor.y = intensity / (m_vColor.y * 255);
-		resultColor.z = intensity / (m_vColor.z * 255);
-	}
-
-	resultColor.x = std::clamp(resultColor.x, 0.f, 255.f);
-	resultColor.y = std::clamp(resultColor.y, 0.f, 255.f);
-	resultColor.z = std::clamp(resultColor.z, 0.f, 255.f);
-
-	Vector forward, right, up;
-	gEngfuncs.pfnAngleVectors(m_vAngles, forward, right, up);
+	gEngfuncs.pfnAngleVectors(
+		m_vAngles,
+		forward,
+		right,
+		up);
 
 	const float radius = m_flSize;
-	const Vector width = right * radius * m_flStretchX;
-	const Vector height = up * radius * m_flStretchY;
 
-	//TODO: shouldn't this be accounting for stretch Y?
-	const Vector lowLeft = m_vOrigin - (width * 0.5) - (up * radius * 0.5);
+	const Vector width =
+		right *
+		radius *
+		m_flStretchX;
 
-	const Vector lowRight = lowLeft + width;
-	const Vector topLeft = lowLeft + height;
-	const Vector topRight = lowRight + height;
+	const Vector height =
+		up *
+		radius *
+		m_flStretchY;
+
+	const Vector lowLeft =
+		m_vOrigin -
+		(width * 0.5f) -
+		(height * 0.5f);
+
+	const Vector lowRight =
+		lowLeft + width;
+
+	const Vector topLeft =
+		lowLeft + height;
+
+	const Vector topRight =
+		lowRight + height;
 
 	gEngfuncs.pTriAPI->SpriteTexture(m_pTexture, m_iFrame);
 	gEngfuncs.pTriAPI->RenderMode(m_iRendermode);
 	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
 
 	gEngfuncs.pTriAPI->Begin(TRI_QUADS);
-	gEngfuncs.pTriAPI->Color4f(resultColor.x / 255, resultColor.y / 255, resultColor.z / 255, m_flBrightness / 255);
+	const float brightnessFactor =
+		std::clamp(
+			m_flBrightness / 255.0f,
+			0.0f,
+			1.0f);
+
+	if (m_iRendermode == kRenderTransAdd)
+	{
+		// Additive blending is faded by reducing emitted RGB.
+		gEngfuncs.pTriAPI->Color4f(
+			(resultColor.x / 255.0f) * brightnessFactor,
+			(resultColor.y / 255.0f) * brightnessFactor,
+			(resultColor.z / 255.0f) * brightnessFactor,
+			1.0f);
+	}
+	else
+	{
+		// Alpha-blended particles can use brightness as alpha.
+		gEngfuncs.pTriAPI->Color4f(
+			resultColor.x / 255.0f,
+			resultColor.y / 255.0f,
+			resultColor.z / 255.0f,
+			brightnessFactor);
+	}
 
 	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
 	gEngfuncs.pTriAPI->Vertex3fv(topLeft);

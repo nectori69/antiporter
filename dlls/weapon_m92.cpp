@@ -35,7 +35,7 @@ void CM92::Spawn()
 	m_iId = WEAPON_M92;
 
 	// Tell the engine about the weapon's world model
-	SET_MODEL(ENT(pev), "models/w_m92.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/m92/w_m92.mdl");
 
 	// Set the default ammo value for the weapon
 	m_iDefaultAmmo = M92_DEFAULT_GIVE;
@@ -49,9 +49,9 @@ void CM92::Spawn()
 void CM92::Precache()
 {
 	// Precache models
-	PRECACHE_MODEL("models/v_m92.mdl");
-	PRECACHE_MODEL("models/w_m92.mdl");
-	PRECACHE_MODEL("models/p_m92.mdl");
+	PRECACHE_MODEL("models/weapons/m92/v_m92.mdl");
+	PRECACHE_MODEL("models/weapons/m92/w_m92.mdl");
+	PRECACHE_MODEL("models/weapons/m92/p_m92.mdl");
 	PRECACHE_MODEL("models/shells/9x19mm.mdl");
 
 	// Precache sounds
@@ -194,8 +194,8 @@ bool CM92::Deploy()
 	TriggerReleased = false;
 
 	return DefaultDeploy(
-		"models/v_m92.mdl",				// Weapon view model
-		"models/p_m92.mdl",				// Weapon player model
+		"models/weapons/m92/v_m92.mdl",				// Weapon view model
+		"models/weapons/m92/p_m92.mdl",				// Weapon player model
 		M92_DRAW,						// "Draw" animation index for the view model
 		"onehanded",					// Third person animation set for the weapon. We'll use the generic "onehanded" animation set
 		pev->body						// The weapon model's "body" pointer

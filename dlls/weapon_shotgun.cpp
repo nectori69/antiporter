@@ -32,7 +32,7 @@ void CShotgun::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_SHOTGUN;
-	SET_MODEL(ENT(pev), "models/w_shotgun.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/spas12/w_shotgun.mdl");
 
 	m_iDefaultAmmo = SHOTGUN_DEFAULT_GIVE;
 
@@ -42,9 +42,9 @@ void CShotgun::Spawn()
 
 void CShotgun::Precache()
 {
-	PRECACHE_MODEL("models/v_shotgun.mdl");
-	PRECACHE_MODEL("models/w_shotgun.mdl");
-	PRECACHE_MODEL("models/p_shotgun.mdl");
+	PRECACHE_MODEL("models/weapons/spas12/v_shotgun.mdl");
+	PRECACHE_MODEL("models/weapons/spas12/w_shotgun.mdl");
+	PRECACHE_MODEL("models/weapons/spas12/p_shotgun.mdl");
 
 	m_iShell = PRECACHE_MODEL("models/shells/12ga.mdl"); // shotgun shell
 
@@ -85,7 +85,7 @@ bool CShotgun::GetItemInfo(ItemInfo* p)
 
 bool CShotgun::Deploy()
 {
-	return DefaultDeploy("models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW, "shotgun");
+	return DefaultDeploy("models/weapons/spas12/v_shotgun.mdl", "models/weapons/spas12/p_shotgun.mdl", SHOTGUN_DRAW, "shotgun");
 }
 
 void CShotgun::PrimaryAttack()
@@ -363,12 +363,12 @@ class CShotgunAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_shotbox.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_shotbox.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_shotbox.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_shotbox.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

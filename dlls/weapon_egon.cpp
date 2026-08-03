@@ -38,7 +38,7 @@ void CEgon::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_EGON;
-	SET_MODEL(ENT(pev), "models/w_egon.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/egon/w_egon.mdl");
 
 	m_iDefaultAmmo = EGON_DEFAULT_GIVE;
 
@@ -48,11 +48,11 @@ void CEgon::Spawn()
 
 void CEgon::Precache()
 {
-	PRECACHE_MODEL("models/w_egon.mdl");
-	PRECACHE_MODEL("models/v_egon.mdl");
-	PRECACHE_MODEL("models/p_egon.mdl");
+	PRECACHE_MODEL("models/weapons/egon/w_egon.mdl");
+	PRECACHE_MODEL("models/weapons/egon/v_egon.mdl");
+	PRECACHE_MODEL("models/weapons/egon/p_egon.mdl");
 
-	PRECACHE_MODEL("models/w_9mmclip.mdl");
+	PRECACHE_MODEL("models/weapons/ammo/w_9mmclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	PRECACHE_SOUND(EGON_SOUND_OFF);
@@ -73,7 +73,7 @@ bool CEgon::Deploy()
 {
 	m_deployed = false;
 	m_fireState = FIRE_OFF;
-	return DefaultDeploy("models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW, "egon");
+	return DefaultDeploy("models/weapons/egon/v_egon.mdl", "models/weapons/egon/p_egon.mdl", EGON_DRAW, "egon");
 }
 
 void CEgon::Holster()
@@ -517,12 +517,12 @@ class CEgonAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_chainammo.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_chainammo.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_chainammo.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_chainammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

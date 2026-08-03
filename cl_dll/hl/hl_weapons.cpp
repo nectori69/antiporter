@@ -70,6 +70,7 @@ CM92 g_M92;
 CM4 g_M4;
 CBDRifle g_BDRifle;
 CDuke4Pistol g_Duke4Pistol;
+CM1911 g_M1911;
 
 /*
 ======================
@@ -442,6 +443,7 @@ void HUD_InitClientWeapons()
 	HUD_PrepEntity(&g_M4, &player);
 	HUD_PrepEntity(&g_BDRifle, &player);
 	HUD_PrepEntity(&g_Duke4Pistol, &player);
+	HUD_PrepEntity(&g_M1911, &player);
 }
 
 /*
@@ -583,6 +585,10 @@ void HUD_WeaponsPostThink(local_state_s* from, local_state_s* to, usercmd_t* cmd
 
 	case WEAPON_DUKE4PISTOL:
 		pWeapon = &g_Duke4Pistol;
+		break;
+
+	case WEAPON_M1911:
+		pWeapon = &g_M1911;
 		break;
 	}
 

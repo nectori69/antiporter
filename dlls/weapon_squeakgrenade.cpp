@@ -106,7 +106,7 @@ void CSqueakGrenade::Spawn()
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/w_squeak.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/snark/w_squeak.mdl");
 	UTIL_SetSize(pev, Vector(-4, -4, 0), Vector(4, 4, 8));
 	UTIL_SetOrigin(pev, pev->origin);
 
@@ -138,9 +138,10 @@ void CSqueakGrenade::Spawn()
 
 void CSqueakGrenade::Precache()
 {
-	PRECACHE_MODEL("models/w_squeak.mdl");
+	PRECACHE_MODEL("models/weapons/snark/w_squeak.mdl");
 	PRECACHE_SOUND("squeek/sqk_blast1.wav");
 	PRECACHE_SOUND("common/bodysplat.wav");
+	PRECACHE_SOUND("common/bodysplat2.wav");
 	PRECACHE_SOUND("squeek/sqk_die1.wav");
 	PRECACHE_SOUND("squeek/sqk_hunt1.wav");
 	PRECACHE_SOUND("squeek/sqk_hunt2.wav");
@@ -182,7 +183,16 @@ void CSqueakGrenade::Killed(entvars_t* pevAttacker, int iGib)
 
 void CSqueakGrenade::GibMonster()
 {
-	EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_NORM, 0, 200);
+	
+	switch (RANDOM_LONG(1, 2))
+	{
+	case 1:
+		EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat.wav", 0.75, ATTN_NORM, 0, 200);
+		break;
+	case 2:
+		EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "common/bodysplat2.wav", 0.75, ATTN_NORM, 0, 200);
+		break;
+	}
 }
 
 
@@ -406,7 +416,7 @@ void CSqueak::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_SNARK;
-	SET_MODEL(ENT(pev), "models/w_sqknest.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/ammo/w_sqknest.mdl");
 
 	FallInit(); //get ready to fall down.
 
@@ -420,9 +430,9 @@ void CSqueak::Spawn()
 
 void CSqueak::Precache()
 {
-	PRECACHE_MODEL("models/w_sqknest.mdl");
-	PRECACHE_MODEL("models/v_squeak.mdl");
-	PRECACHE_MODEL("models/p_squeak.mdl");
+	PRECACHE_MODEL("models/weapons/ammo/w_sqknest.mdl");
+	PRECACHE_MODEL("models/weapons/snark/v_squeak.mdl");
+	PRECACHE_MODEL("models/weapons/snark/p_squeak.mdl");
 	PRECACHE_SOUND("squeek/sqk_hunt2.wav");
 	PRECACHE_SOUND("squeek/sqk_hunt3.wav");
 	UTIL_PrecacheOther("monster_snark");
@@ -462,7 +472,7 @@ bool CSqueak::Deploy()
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-	const bool result = DefaultDeploy("models/v_squeak.mdl", "models/p_squeak.mdl", SQUEAK_UP, "squeak");
+	const bool result = DefaultDeploy("models/weapons/snark/v_squeak.mdl", "models/weapons/snark/p_squeak.mdl", SQUEAK_UP, "squeak");
 
 	if (result)
 	{

@@ -113,6 +113,7 @@ struct skilldata_t
 	//below: added by sfs
 	float plrDmgM4;
 	float plrDmgM92;
+	float plrDmg1911;
 
 	// weapons shared by monsters
 	float monDmg9MM;

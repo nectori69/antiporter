@@ -28,6 +28,7 @@
 
 #include "ammohistory.h"
 #include "vgui_TeamFortressViewport.h"
+#include "hud_sprite_filter.h"
 
 WEAPON* gpActiveSel; // NULL means off, 1 means just the menu bar, otherwise
 					 // this points to the active weapon menu item
@@ -868,7 +869,7 @@ bool CHudAmmo::Draw(float flTime)
 	ScaleColors(r, g, b, a);
 
 	// Does this weapon have a clip?
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
+	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight;
 
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
@@ -912,8 +913,17 @@ bool CHudAmmo::Draw(float flTime)
 
 		// Draw the ammo Icon
 		int iOffset = (m_pWeapon->rcAmmo.bottom - m_pWeapon->rcAmmo.top) / 8;
-		SPR_Set(m_pWeapon->hAmmo, r, g, b);
-		SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo);
+		//SPR_Set(m_pWeapon->hAmmo, r, g, b);
+		//SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo);
+		DrawHudSpriteAdditiveNearest(
+			m_pWeapon->hAmmo,
+			0,
+			x,
+			y - iOffset,
+			&m_pWeapon->rcAmmo,
+			r,
+			g,
+			b);
 	}
 
 	// Does weapon have seconday ammo?
@@ -929,9 +939,18 @@ bool CHudAmmo::Draw(float flTime)
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmo2Type), r, g, b);
 
 			// Draw the ammo Icon
-			SPR_Set(m_pWeapon->hAmmo2, r, g, b);
+			//SPR_Set(m_pWeapon->hAmmo2, r, g, b);
 			int iOffset = (m_pWeapon->rcAmmo2.bottom - m_pWeapon->rcAmmo2.top) / 8;
-			SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo2);
+			//SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo2);
+			DrawHudSpriteAdditiveNearest(
+				m_pWeapon->hAmmo2,
+				0,
+				x,
+				y,
+				&m_pWeapon->rcAmmo2,
+				r,
+				g,
+				b);
 		}
 	}
 	return true;
@@ -1097,11 +1116,29 @@ bool CHudAmmo::DrawWList(float flTime)
 
 				if (gpActiveSel == p)
 				{
-					SPR_Set(p->hActive, r, g, b);
-					SPR_DrawAdditive(0, x, y, &p->rcActive);
+					//SPR_Set(p->hActive, r, g, b);
+					//SPR_DrawAdditive(0, x, y, &p->rcActive);
+					DrawHudSpriteAdditiveNearest(
+						p->hActive,
+						0,
+						x,
+						y,
+						&p->rcActive,
+						r,
+						g,
+						b);
 
-					SPR_Set(gHUD.GetSprite(m_HUD_selection), r, g, b);
-					SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_selection));
+					//SPR_Set(gHUD.GetSprite(m_HUD_selection), r, g, b);
+					//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_selection));
+					DrawHudSpriteAdditiveNearest(
+						gHUD.GetSprite(m_HUD_selection),
+						0,
+						x,
+						y,
+						&gHUD.GetSpriteRect(m_HUD_selection),
+						r,
+						g,
+						b);
 				}
 				else
 				{
@@ -1115,8 +1152,17 @@ bool CHudAmmo::DrawWList(float flTime)
 						ScaleColors(r, g, b, 128);
 					}
 
-					SPR_Set(p->hInactive, r, g, b);
-					SPR_DrawAdditive(0, x, y, &p->rcInactive);
+					//SPR_Set(p->hInactive, r, g, b);
+					//SPR_DrawAdditive(0, x, y, &p->rcInactive);
+					DrawHudSpriteAdditiveNearest(
+						p->hInactive,
+						0,
+						x,
+						y,
+						&p->rcInactive,
+						r,
+						g,
+						b);
 				}
 
 				// Draw Ammo Bar

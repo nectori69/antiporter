@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include "parsemsg.h"
 #include "event_api.h"
+#include <hud_sprite_filter.h>
 
 DECLARE_MESSAGE(m_StatusIcons, StatusIcon);
 
@@ -66,8 +67,17 @@ bool CHudStatusIcons::Draw(float flTime)
 		{
 			y -= (m_IconList[i].rc.bottom - m_IconList[i].rc.top) + 5;
 
-			SPR_Set(m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b);
-			SPR_DrawAdditive(0, x, y, &m_IconList[i].rc);
+			//SPR_Set(m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b);
+			//SPR_DrawAdditive(0, x, y, &m_IconList[i].rc);
+			DrawHudSpriteAdditiveNearest(
+				m_IconList[i].spr,
+				0,
+				x,
+				y,
+				&m_IconList[i].rc,
+				m_IconList[i].r,
+				m_IconList[i].g,
+				m_IconList[i].b);
 		}
 	}
 

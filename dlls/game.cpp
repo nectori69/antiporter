@@ -376,6 +376,10 @@ cvar_t sk_plr_m4_bullet3 = {"sk_plr_m4_bullet3", "0"};
 cvar_t sk_plr_m92_bullet1 = {"sk_plr_m92_bullet1", "0"};
 cvar_t sk_plr_m92_bullet2 = {"sk_plr_m92_bullet2", "0"};
 cvar_t sk_plr_m92_bullet3 = {"sk_plr_m92_bullet3", "0"};
+// m1911
+cvar_t sk_plr_1911_bullet1 = {"sk_plr_1911_bullet1", "0"};
+cvar_t sk_plr_1911_bullet2 = {"sk_plr_1911_bullet2", "0"};
+cvar_t sk_plr_1911_bullet3 = {"sk_plr_1911_bullet3", "0"};
 
 
 // WORLD WEAPONS
@@ -839,6 +843,10 @@ void GameDLLInit()
 	CVAR_REGISTER(&sk_plr_m92_bullet1); // {"sk_plr_m92_bullet1","0"};
 	CVAR_REGISTER(&sk_plr_m92_bullet2); // {"sk_plr_m92_bullet2","0"};
 	CVAR_REGISTER(&sk_plr_m92_bullet3); // {"sk_plr_m92_bullet3","0"};
+	// m1911
+	CVAR_REGISTER(&sk_plr_1911_bullet1); // {"sk_plr_1911_bullet1","0"};
+	CVAR_REGISTER(&sk_plr_1911_bullet2); // {"sk_plr_1911_bullet2","0"};
+	CVAR_REGISTER(&sk_plr_1911_bullet3); // {"sk_plr_1911_bullet3","0"};
 
 
 	// WORLD WEAPONS

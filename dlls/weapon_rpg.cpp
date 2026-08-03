@@ -320,7 +320,7 @@ void CRpg::Spawn()
 	Precache();
 	m_iId = WEAPON_RPG;
 
-	SET_MODEL(ENT(pev), "models/w_rpg.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/rpg/w_rpg.mdl");
 	m_fSpotActive = true;
 
 #ifdef CLIENT_DLL
@@ -343,9 +343,9 @@ void CRpg::Spawn()
 
 void CRpg::Precache()
 {
-	PRECACHE_MODEL("models/w_rpg.mdl");
-	PRECACHE_MODEL("models/v_rpg.mdl");
-	PRECACHE_MODEL("models/p_rpg.mdl");
+	PRECACHE_MODEL("models/weapons/rpg/w_rpg.mdl");
+	PRECACHE_MODEL("models/weapons/rpg/v_rpg.mdl");
+	PRECACHE_MODEL("models/weapons/rpg/p_rpg.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -380,10 +380,10 @@ bool CRpg::Deploy()
 {
 	if (m_iClip == 0)
 	{
-		return DefaultDeploy("models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_UL, "rpg");
+		return DefaultDeploy("models/weapons/rpg/v_rpg.mdl", "models/weapons/rpg/p_rpg.mdl", RPG_DRAW_UL, "rpg");
 	}
 
-	return DefaultDeploy("models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW1, "rpg");
+	return DefaultDeploy("models/weapons/rpg/v_rpg.mdl", "models/weapons/rpg/p_rpg.mdl", RPG_DRAW1, "rpg");
 }
 
 
@@ -552,12 +552,12 @@ class CRpgAmmo : public CBasePlayerAmmo
 	void Spawn() override
 	{
 		Precache();
-		SET_MODEL(ENT(pev), "models/w_rpgammo.mdl");
+		SET_MODEL(ENT(pev), "models/weapons/ammo/w_rpgammo.mdl");
 		CBasePlayerAmmo::Spawn();
 	}
 	void Precache() override
 	{
-		PRECACHE_MODEL("models/w_rpgammo.mdl");
+		PRECACHE_MODEL("models/weapons/ammo/w_rpgammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	bool AddAmmo(CBaseEntity* pOther) override

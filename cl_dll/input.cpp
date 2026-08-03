@@ -663,9 +663,14 @@ void DLLEXPORT CL_CreateMove(float frametime, struct usercmd_s* cmd, int active)
 		//viewangles[ 0 ] = viewangles[ 1 ] = viewangles[ 2 ] = 0.0;
 		gEngfuncs.GetViewAngles((float*)viewangles);
 
+		viewangles[PITCH] += recoilAngle[PITCH];
+		viewangles[YAW] += recoilAngle[YAW];
+
 		CL_AdjustAngles(frametime, viewangles);
 
 		memset(cmd, 0, sizeof(*cmd));
+
+
 
 		gEngfuncs.SetViewAngles((float*)viewangles);
 
@@ -1011,11 +1016,14 @@ void ShutdownInput()
 }
 
 #include "interface.h"
+#include <particle_util.h>
 void CL_UnloadParticleMan();
 
 
 void DLLEXPORT HUD_Shutdown()
 {
+	ParticleUtil_Shutdown();
+
 	//	RecClShutdown();
 
 	ShutdownInput();

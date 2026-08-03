@@ -9,3 +9,6 @@
 
 void V_StartPitchDrift();
 void V_StopPitchDrift();
+void V_CSStyleRecoil(float pitch, float yaw);
+
+extern Vector recoilAngle;

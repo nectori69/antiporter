@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include "ammohistory.h"
+#include <hud_sprite_filter.h>
 
 HistoryResource gHR;
 
@@ -133,8 +134,17 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 				int xpos = ScreenWidth - 24;
 				if (spr && 0 != *spr) // weapon isn't loaded yet so just don't draw the pic
 				{					  // the dll has to make sure it has sent info the weapons you need
-					SPR_Set(*spr, r, g, b);
-					SPR_DrawAdditive(0, xpos, ypos, &rcPic);
+					//SPR_Set(*spr, r, g, b);
+					//SPR_DrawAdditive(0, xpos, ypos, &rcPic);
+					DrawHudSpriteAdditiveNearest(
+						*spr,
+						0,
+						xpos,
+						ypos,
+						&rcPic,
+						r,
+						g,
+						b);
 				}
 
 				// Draw the number
@@ -158,8 +168,17 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 
 				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
 				int xpos = ScreenWidth - (weap->rcInactive.right - weap->rcInactive.left);
-				SPR_Set(weap->hInactive, r, g, b);
-				SPR_DrawAdditive(0, xpos, ypos, &weap->rcInactive);
+				//SPR_Set(weap->hInactive, r, g, b);
+				//SPR_DrawAdditive(0, xpos, ypos, &weap->rcInactive);
+				DrawHudSpriteAdditiveNearest(
+					weap->hInactive,
+					0,
+					xpos,
+					ypos,
+					&weap->rcInactive,
+					r,
+					g,
+					b);
 			}
 			else if (rgAmmoHistory[i].type == HISTSLOT_ITEM)
 			{
@@ -177,8 +196,17 @@ bool HistoryResource::DrawAmmoHistory(float flTime)
 				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
 				int xpos = ScreenWidth - (rect.right - rect.left) - 10;
 
-				SPR_Set(gHUD.GetSprite(rgAmmoHistory[i].iId), r, g, b);
-				SPR_DrawAdditive(0, xpos, ypos, &rect);
+				//SPR_Set(gHUD.GetSprite(rgAmmoHistory[i].iId), r, g, b);
+				//SPR_DrawAdditive(0, xpos, ypos, &rect);
+				DrawHudSpriteAdditiveNearest(
+					gHUD.GetSprite(rgAmmoHistory[i].iId),
+					0,
+					xpos,
+					ypos,
+					&rect,
+					r,
+					g,
+					b);
 			}
 		}
 	}

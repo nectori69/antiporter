@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include "vgui_TeamFortressViewport.h"
+#include <hud_sprite_filter.h>
 
 DECLARE_MESSAGE(m_DeathNotice, DeathMsg);
 
@@ -148,8 +149,17 @@ bool CHudDeathNotice::Draw(float flTime)
 			}
 
 			// Draw death weapon
-			SPR_Set(gHUD.GetSprite(id), r, g, b);
-			SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(id));
+			//SPR_Set(gHUD.GetSprite(id), r, g, b);
+			//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(id));
+			DrawHudSpriteAdditiveNearest(
+				gHUD.GetSprite(id),
+				0,
+				x,
+				y,
+				&gHUD.GetSpriteRect(id),
+				r,
+				g,
+				b);
 
 			x += (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left);
 

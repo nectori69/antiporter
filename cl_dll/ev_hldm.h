@@ -38,6 +38,7 @@ void EV_FireM92(event_args_t* args);
 void EV_FireM4(event_args_t* args);
 void EV_FireBDRifle(event_args_t* args);
 void EV_FireDuke4Pistol(event_args_t* args);
+void EV_FireM1911(event_args_t* args);
 
 void EV_TrainPitchAdjust(event_args_t* args);
 void EV_HLDM_MuzzleFlash(float* pos, float amount);

@@ -155,6 +155,7 @@ void DecalGunshot(TraceResult* pTrace, int iBulletType)
 		case BULLET_PLAYER_MP5:
 		case BULLET_PLAYER_M4:
 		case BULLET_PLAYER_M92:
+		case BULLET_PLAYER_1911:
 		case BULLET_MONSTER_MP5:
 		case BULLET_PLAYER_BUCKSHOT:
 		case BULLET_PLAYER_357:
@@ -336,6 +337,8 @@ void W_Precache()
 	UTIL_PrecacheOtherWeapon("weapon_bdrifle");
 	// duke4, pistol
 	UTIL_PrecacheOtherWeapon("weapon_duke4pistol");
+	// m1911
+	UTIL_PrecacheOtherWeapon("weapon_m1911");
 
 
 	if (g_pGameRules->IsDeathmatch())
@@ -1077,7 +1080,7 @@ IMPLEMENT_SAVERESTORE(CWeaponBox, CBaseEntity);
 //=========================================================
 void CWeaponBox::Precache()
 {
-	PRECACHE_MODEL("models/w_weaponbox.mdl");
+	PRECACHE_MODEL("models/weapons/ammo/w_weaponbox.mdl");
 }
 
 //=========================================================
@@ -1111,7 +1114,7 @@ void CWeaponBox::Spawn()
 
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 
-	SET_MODEL(ENT(pev), "models/w_weaponbox.mdl");
+	SET_MODEL(ENT(pev), "models/weapons/ammo/w_weaponbox.mdl");
 }
 
 //=========================================================

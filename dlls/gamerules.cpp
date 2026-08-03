@@ -335,6 +335,8 @@ void CGameRules::RefreshSkillData()
 	gSkillData.plrDmgM4 = GetSkillCvar("sk_plr_m4_bullet");
 	// m92f
 	gSkillData.plrDmgM92 = GetSkillCvar("sk_plr_m92_bullet");
+	// m1911
+	gSkillData.plrDmg1911 = GetSkillCvar("sk_plr_1911_bullet");
 
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar("sk_12mm_bullet");

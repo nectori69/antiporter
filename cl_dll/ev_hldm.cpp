@@ -41,15 +41,19 @@
 
 #include "r_studioint.h"
 #include "com_model.h"
+#include "motion_spring.h"
+#include "view.h"
 
 extern engine_studio_api_t IEngineStudio;
 
 static int tracerCount[MAX_PLAYERS];
+static model_s* g_pSmokeSprite = nullptr;
+static model_s* g_pSparkSprite = nullptr;
 
 #include "pm_shared.h"
+#include <particle_util.h>
 
-void V_Recoil(float recoil);
-
+void V_AddRecoil(Vector recoil);
 void V_PunchAxis(int axis, float punch);
 void VectorAngles(const float* forward, float* angles);
 
@@ -270,7 +274,7 @@ void EV_HLDM_GunshotDecalTrace(pmtrace_t* pTrace, char* decalName)
 	iRand = gEngfuncs.pfnRandomLong(0, 0x7FFF);
 	if (iRand < (0x7fff / 2)) // not every bullet makes a sound.
 	{
-		switch (iRand % 5)
+		switch (iRand % 7)
 		{
 		case 0:
 			gEngfuncs.pEventAPI->EV_PlaySound(-1, pTrace->endpos, 0, "weapons/ric1.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
@@ -286,6 +290,15 @@ void EV_HLDM_GunshotDecalTrace(pmtrace_t* pTrace, char* decalName)
 			break;
 		case 4:
 			gEngfuncs.pEventAPI->EV_PlaySound(-1, pTrace->endpos, 0, "weapons/ric5.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 5:
+			gEngfuncs.pEventAPI->EV_PlaySound(-1, pTrace->endpos, 0, "weapons/ric6.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 6:
+			gEngfuncs.pEventAPI->EV_PlaySound(-1, pTrace->endpos, 0, "weapons/ric7.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+			break;
+		case 7:
+			gEngfuncs.pEventAPI->EV_PlaySound(-1, pTrace->endpos, 0, "weapons/ric8.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
 			break;
 		}
 	}
@@ -322,6 +335,7 @@ void EV_HLDM_DecalGunshot(pmtrace_t* pTrace, int iBulletType)
 		case BULLET_PLAYER_357:
 		case BULLET_PLAYER_M4:
 		case BULLET_PLAYER_M92:
+		case BULLET_PLAYER_1911:
 		default:
 			// smoke and decal
 			EV_HLDM_GunshotDecalTrace(pTrace, EV_HLDM_DamageDecal(pe));
@@ -366,7 +380,6 @@ void EV_HLDM_CheckTracer(int idx, float* vecSrc, float* end, float* forward, flo
 		}
 	}
 }
-
 
 /*
 ================
@@ -490,9 +503,67 @@ void EV_FireGlock1(event_args_t* args)
 	if (EV_IsLocal(idx))
 	{
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 2.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokePistol,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, -2.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.5f, -1.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-50.0f, 50.0f), RANDOM_FLOAT(-15.0f, 15.0f), 200.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -50.0f, -60.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -537,9 +608,67 @@ void EV_FireGlock2(event_args_t* args)
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 2.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokePistol,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 0);
 
-		V_PunchAxis(0, -2.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.0f, -0.5f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.025f, 0.05f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-150.0f, 150.0f), RANDOM_FLOAT(-30.0f, 30.0f), 300.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-30.0f, 30.0f), -60.0f, -80.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -589,8 +718,67 @@ void EV_FireShotGunDouble(event_args_t* args)
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 28.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			8,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			48,
+			muzzleOrigin,
+			forward * 500.0f,
+			Vector(
+				RANDOM_FLOAT(-500.0f, 500.0f),
+				RANDOM_FLOAT(-500.0f, 500.0f),
+				RANDOM_FLOAT(-500.0f, 500.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(SHOTGUN_FIRE2, 0);
-		V_PunchAxis(0, -10.0);
+
+		V_AddRecoil(Vector(RANDOM_FLOAT(-4.5f, 4.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-16.0f, -10.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.6f, 0.7f), RANDOM_FLOAT(-0.12f, 0.12f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-500.0f, 500.0f), RANDOM_FLOAT(-45.0f, 45.0f), 100.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -50.0f, -400.0f));
 	}
 
 	for (j = 0; j < 2; j++)
@@ -642,9 +830,67 @@ void EV_FireShotGunSingle(event_args_t* args)
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 28.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			8,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			48,
+			muzzleOrigin,
+			forward * 500.0f,
+			Vector(
+				RANDOM_FLOAT(-500.0f, 500.0f),
+				RANDOM_FLOAT(-500.0f, 500.0f),
+				RANDOM_FLOAT(-500.0f, 500.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(SHOTGUN_FIRE, 0);
 
-		V_PunchAxis(0, -5.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-11.0f, -6.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.3f, 0.6f), RANDOM_FLOAT(-0.12f, 0.12f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-400.0f, 400.0f), RANDOM_FLOAT(-45.0f, 45.0f), 100.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -50.0f, -300.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, 6);
@@ -698,9 +944,67 @@ void EV_FireMP5(event_args_t* args)
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokePistol,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_FIRE1 + gEngfuncs.pfnRandomLong(0, 2), 0);
 
-		V_PunchAxis(0, -1.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-0.5f, 0.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-0.55f, -0.25f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.035f, 0.05f), RANDOM_FLOAT(-0.02f, 0.02f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-35.0f, 35.0f), 80.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -16.0f, -60.0f));
 	}
 
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
@@ -740,7 +1044,14 @@ void EV_FireMP52(event_args_t* args)
 	if (EV_IsLocal(idx))
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_LAUNCH, 0);
-		V_PunchAxis(0, -10);
+
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.5f, -1.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-50.0f, 50.0f), RANDOM_FLOAT(-15.0f, 15.0f), 500.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -200.0f, -300.0f));
 	}
 
 	switch (gEngfuncs.pfnRandomLong(0, 1))
@@ -785,9 +1096,67 @@ void EV_FirePython(event_args_t* args)
 
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(PYTHON_FIRE1, multiplayer ? 1 : 0);
 
-		V_PunchAxis(0, -10.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-6.5f, -4.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.25f, 0.4f), RANDOM_FLOAT(-0.12f, 0.12f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-45.0f, 45.0f), 100.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -40.0f, -200.0f));
 	}
 
 	switch (gEngfuncs.pfnRandomLong(0, 1))
@@ -897,7 +1266,14 @@ void EV_FireGauss(event_args_t* args)
 
 	if (EV_IsLocal(idx))
 	{
-		V_PunchAxis(0, -2.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-2.5f, -1.5f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.1f, 0.2f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-10.0f, 10.0f), 100.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -40.0f, -80.0f));
+
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(GAUSS_FIRE2, 0);
 
 		if (!m_fPrimaryFire)
@@ -932,6 +1308,14 @@ void EV_FireGauss(event_args_t* args)
 			{
 				// Add muzzle flash to current weapon model
 				EV_MuzzleFlash();
+
+				V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-2.5f, -1.5f)));
+				V_CSStyleRecoil(RANDOM_FLOAT(0.1f, 0.2f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+				//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+				//for position: x = left/right, y = down/up, z = back/forwards
+				AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-600.0f, 600.0f), RANDOM_FLOAT(-35.0f, 35.0f), 300.0f));
+				AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-60.0f, 60.0f), -150.0f, -80.0f));
 			}
 			fFirstBeam = false;
 
@@ -1138,10 +1522,25 @@ void EV_Crowbar(event_args_t* args)
 	VectorCopy(args->origin, origin);
 
 	//Play Swing sound
-	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+	switch (gEngfuncs.pfnRandomLong(0, 1))
+	{
+	case 0:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/crowbar/cbar_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+		break;
+	case 1:
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/crowbar/cbar_miss2.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+		break;
+	}
 
 	if (EV_IsLocal(idx))
 	{
+		V_AddRecoil(Vector(RANDOM_FLOAT(-0.5f, 0.5f), RANDOM_FLOAT(0.2f, 0.5f), RANDOM_FLOAT(0.1f, 0.2f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.0f, 0.0f), RANDOM_FLOAT(0.0f, 0.0f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		//AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-150.0f, 150.0f), RANDOM_FLOAT(-30.0f, 30.0f), 300.0f));
+		//AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-30.0f, 30.0f), -60.0f, -80.0f));
 		switch ((g_iSwing++) % 3)
 		{
 		case 0:
@@ -1282,8 +1681,14 @@ void EV_FireCrossbow(event_args_t* args)
 			gEngfuncs.pEventAPI->EV_WeaponAnimation(CROSSBOW_FIRE1, 0);
 		else
 			gEngfuncs.pEventAPI->EV_WeaponAnimation(CROSSBOW_FIRE3, 0);
+		
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-2.5f, -1.5f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.1f, 0.2f), RANDOM_FLOAT(-0.08f, 0.08f));
 
-		V_PunchAxis(0, -2.0);
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-600.0f, 600.0f), RANDOM_FLOAT(-35.0f, 35.0f), 300.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-60.0f, 60.0f), -150.0f, 20.0f));
 	}
 }
 //======================
@@ -1309,7 +1714,13 @@ void EV_FireRpg(event_args_t* args)
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(RPG_FIRE2, 0);
 
-		V_PunchAxis(0, -5.0);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.5f, -1.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-25.0f, 25.0f), 300.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), RANDOM_FLOAT(-20.0f, -5.0f), -400.0f));
 	}
 }
 //======================
@@ -1334,6 +1745,14 @@ void EV_EgonFlareCallback(struct tempent_s* ent, float frametime, float currentt
 		ent->entity.curstate.scale += ent->tentOffset.x * delta;
 		ent->tentOffset.z = currenttime;
 	}
+
+	V_AddRecoil(Vector(RANDOM_FLOAT(-0.1f, 0.1f), RANDOM_FLOAT(-0.1f, 0.1f), RANDOM_FLOAT(-0.1f, 0.1f)));
+	V_CSStyleRecoil(RANDOM_FLOAT(-0.025f, 0.025f), RANDOM_FLOAT(-0.01f, 0.01f));
+
+	//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+	//for position: x = left/right, y = down/up, z = back/forwards
+	AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f)));
+	AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f)));
 }
 
 void EV_EgonFire(event_args_t* args)
@@ -1349,6 +1768,14 @@ void EV_EgonFire(event_args_t* args)
 
 	if (iStartup)
 	{
+		V_AddRecoil(Vector(RANDOM_FLOAT(-0.1f, 0.1f), RANDOM_FLOAT(-0.1f, 0.1f), RANDOM_FLOAT(-0.1f, 0.1f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(-0.025f, 0.025f), RANDOM_FLOAT(-0.01f, 0.01f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-20.0f, 20.0f), RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f)));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f), RANDOM_FLOAT(-5.0f, 5.0f)));
+
 		if (iFireMode == FIRE_WIDE)
 			gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, EGON_SOUND_STARTUP, 0.98, ATTN_NORM, 0, 125);
 		else
@@ -1414,7 +1841,6 @@ void EV_EgonFire(event_args_t* args)
 				g /= 255.0f;
 				b /= 255.0f;
 			}
-
 
 			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, 0.2, 0.7, 55, 0, 0, r, g, b);
 
@@ -1513,8 +1939,15 @@ void EV_HornetGunFire(event_args_t* args)
 	//Only play the weapon anims if I shot it.
 	if (EV_IsLocal(idx))
 	{
-		V_PunchAxis(0, gEngfuncs.pfnRandomLong(0, 2));
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(HGUN_SHOOT, 0);
+
+		V_AddRecoil(Vector(RANDOM_FLOAT(-0.5f, 0.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-0.55f, -0.25f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.035f, 0.05f), RANDOM_FLOAT(-0.02f, 0.02f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-200.0f, 200.0f), RANDOM_FLOAT(-35.0f, 35.0f), 80.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -16.0f, -160.0f));
 	}
 
 	switch (gEngfuncs.pfnRandomLong(0, 2))
@@ -1667,11 +2100,68 @@ void EV_FireDesertEagle(event_args_t* args)
 		//...render muzzleflash...
 		EV_MuzzleFlash();
 
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		//...show the gun firing, or firing and locking to the rear if it's the last round in the magazine...
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? DESERT_EAGLE_SHOOT_EMPTY : DESERT_EAGLE_SHOOT, 0);
 
 		//...and recoil the camera
-		V_PunchAxis(0, -4.5);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-6.5f, -4.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.25f, 0.4f), RANDOM_FLOAT(-0.12f, 0.12f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-45.0f, 45.0f), 60.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -30.0f, -100.0f));
 	}
 
 	//eject the casing!!!
@@ -1681,7 +2171,7 @@ void EV_FireDesertEagle(event_args_t* args)
 	//make a very loud bang
 
 	//make a very loud bang
-	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/deagle/deagle_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/deagle/deagle_fire.wav", 1.0, ATTN_NORM, 0, 100.0);
 
 	//throw some metal down-range
 	EV_GetGunPosition(args, vecSRC, origin);
@@ -1744,11 +2234,68 @@ void EV_FireM92(event_args_t* args)
 		//...render muzzleflash...
 		EV_MuzzleFlash();
 
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokePistol,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		//...show the gun firing, or firing and locking to the rear if it's the last round in the magazine...
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? M92_SHOOT_EMPTY : M92_SHOOT, 0);
 
 		//...and recoil the camera
-		V_PunchAxis(0, -2.5);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.5f, -1.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-50.0f, 50.0f), RANDOM_FLOAT(-15.0f, 15.0f), 300.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -20.0f, -40.0f));
 	}
 
 	//eject the casing!!!
@@ -1767,6 +2314,143 @@ void EV_FireM92(event_args_t* args)
 
 //======================
 //		M92 END
+//======================
+
+//======================
+//		M1911 START
+//======================
+
+//exact same as the values from m1911.cpp, these are the animation names
+enum m1911_e
+{
+	M1911_IDLE1 = 0,
+	M1911_IDLE2,
+	M1911_IDLE3,
+	M1911_FIDGET,
+	M1911_SHOOT,
+	M1911_SHOOT_EMPTY,
+	M1911_RELOAD,
+	M1911_RELOAD_NOT_EMPTY,
+	M1911_DRAW,
+	M1911_HOLSTER,
+};
+
+void EV_FireM1911(event_args_t* args)
+{
+	if (!g_pSmokeSprite)
+	{
+		HSPRITE hSprite = SPR_Load("sprites/glow01.spr");
+		model_s* g_pSmokeSprite = (model_s*)gEngfuncs.GetSpritePointer(hSprite);
+	}
+	//variables, copy/paste code, etc...
+	int idx;
+	Vector origin;
+	Vector angles;
+	Vector velocity;
+	bool empty;
+
+	Vector ShellVelocity;
+	Vector ShellOrigin;
+	int shell;
+	Vector vecSRC, vecAiming;
+	Vector up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy(args->origin, origin);
+	VectorCopy(args->angles, angles);
+	VectorCopy(args->velocity, velocity);
+
+	empty = 0 != args->bparam1;
+	AngleVectors(angles, forward, right, up);
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex("models/shells/9x19mm.mdl"); //casing model
+
+	//if the entity firing this event is the player...
+	if (EV_IsLocal(idx))
+	{
+		//...render muzzleflash...
+		EV_MuzzleFlash();
+
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokePistol,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
+		//...show the gun firing, or firing and locking to the rear if it's the last round in the magazine...
+		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? M1911_SHOOT_EMPTY : M1911_SHOOT, 0);
+
+		//...and recoil the camera
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.5f, -1.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-300.0f, 300.0f), RANDOM_FLOAT(-10.0f, 10.0f), 400.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-50.0f, 50.0f), -60.0f, -120.0f));
+	}
+
+	//eject the casing!!!
+	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
+	EV_EjectBrass(ShellOrigin, ShellVelocity, angles[YAW], shell, TE_BOUNCE_SHELL);
+
+	//make a very loud bang
+	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m1911/m1911_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong(0, 3));
+
+	//throw some metal down-range
+	EV_GetGunPosition(args, vecSRC, origin);
+	EV_HLDM_MuzzleFlash(vecSRC, 1.0 + gEngfuncs.pfnRandomFloat(-0.2, 0.2));
+	VectorCopy(forward, vecAiming);
+	EV_HLDM_FireBullets(idx, forward, right, up, 1, vecSRC, vecAiming, 8192, BULLET_PLAYER_1911, 0, 0, args->fparam1, args->fparam2);
+}
+
+//======================
+//		M1911 END
 //======================
 
 //======================
@@ -1817,42 +2501,94 @@ void EV_FireM4(event_args_t* args)
 		//...render muzzleflash...
 		EV_MuzzleFlash();
 
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 30.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			4,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-30.0f, 30.0f),
+				RANDOM_FLOAT(-30.0f, 30.0f),
+				RANDOM_FLOAT(-30.0f, 30.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		//...show the gun firing!!
 		switch (gEngfuncs.pfnRandomLong(0, 2))
 		{
-		case 0:
-			gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE1, 0);
-			break;
-		case 1:
-			gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE2, 0);
-			break;
-		case 2:
-			gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE3, 0);
-			break;
+			case 0: gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE1, 0); break;
+			case 1: gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE2, 0); break;
+			case 2: gEngfuncs.pEventAPI->EV_WeaponAnimation(M4_FIRE3, 0); break;
 		}
 
 		//...and recoil the camera
-		V_Recoil(0.5);
-		V_PunchAxis(0, -1.5);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.0f, -0.5f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-10.0f, 10.0f), 150.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -20.0f, -60.0f));
 	}
 
 	//eject the casing!!!
 	EV_GetDefaultShellInfo(args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4);
 	EV_EjectBrass(ShellOrigin, ShellVelocity, angles[YAW], shell, TE_BOUNCE_SHELL);
-
+	
+	/*gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire.wav", 1, ATTN_NORM, 0, 100);
+	*/
 	switch (gEngfuncs.pfnRandomLong(0, 3))
 	{
 	case 0:
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire1.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire1.wav", 1, ATTN_NORM, 0, 100);
 		break;
 	case 1:
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire2.wav", 1, ATTN_NORM, 0, 100);
 		break;
 	case 2:
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire3.wav", 1, ATTN_NORM, 0, 100);
 		break;
 	case 3:
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire4.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong(0, 0xf));
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/m4/m4_fire4.wav", 1, ATTN_NORM, 0, 100);
 		break;
 	}
 
@@ -1915,6 +2651,57 @@ void EV_FireBDRifle(event_args_t* args)
 		//...render muzzleflash...
 		EV_MuzzleFlash();
 
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 30.0f +
+			right * 0.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			4,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-30.0f, 30.0f),
+				RANDOM_FLOAT(-30.0f, 30.0f),
+				RANDOM_FLOAT(-30.0f, 30.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		//...show the gun firing!!
 		switch (gEngfuncs.pfnRandomLong(0, 2))
 		{
@@ -1930,8 +2717,13 @@ void EV_FireBDRifle(event_args_t* args)
 		}
 
 		//...and recoil the camera
-		V_Recoil(0.5);
-		V_PunchAxis(0, -1.5);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-1.0f, -0.5f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.05f, 0.1f), RANDOM_FLOAT(-0.08f, 0.08f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-10.0f, 10.0f), RANDOM_FLOAT(-10.0f, 10.0f), 40.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -20.0f, -40.0f));
 	}
 
 	//eject the casing!!!
@@ -2015,11 +2807,68 @@ void EV_FireDuke4Pistol(event_args_t* args)
 		//...render muzzleflash...
 		EV_MuzzleFlash();
 
+		Vector viewAngles;
+		gEngfuncs.GetViewAngles(viewAngles);
+
+		gEngfuncs.pfnAngleVectors(
+			viewAngles,
+			forward,
+			right,
+			up);
+
+		Vector eventOrigin(
+			args->origin[0],
+			args->origin[1],
+			args->origin[2]);
+
+		Vector gunPosition;
+
+		EV_GetGunPosition(
+			args,
+			gunPosition,
+			eventOrigin);
+
+		Vector muzzleOrigin =
+			gunPosition +
+			forward * 20.0f +
+			right * 6.0f -
+			up * 4.0f;
+
+		SpawnParticles(
+			ParticleType::MuzzleSmokeRifle,
+			6,
+			muzzleOrigin,
+			Vector(0.0f,0.0f,0.0f),
+			Vector(
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f),
+				RANDOM_FLOAT(-15.0f, 15.0f)
+			)
+		);
+
+		SpawnParticles(
+			ParticleType::MuzzleSpark,
+			6,
+			muzzleOrigin,
+			forward * 200.0f,
+			Vector(
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f),
+				RANDOM_FLOAT(-200.0f, 200.0f)
+			)
+		);
+
 		//...show the gun firing, or firing and locking to the rear if it's the last round in the magazine...
 		gEngfuncs.pEventAPI->EV_WeaponAnimation(empty ? DUKE4_PISTOL_SHOOT_EMPTY : DUKE4_PISTOL_SHOOT, 0);
 
 		//...and recoil the camera
-		V_PunchAxis(0, -4);
+		V_AddRecoil(Vector(RANDOM_FLOAT(-1.5f, 1.5f), RANDOM_FLOAT(-0.25f, 0.25f), RANDOM_FLOAT(-6.5f, -4.0f)));
+		V_CSStyleRecoil(RANDOM_FLOAT(0.25f, 0.4f), RANDOM_FLOAT(-0.12f, 0.12f));
+
+		//for rotation: x = roll left/right , y = yaw left/right, z = pitch down/up
+		//for position: x = left/right, y = down/up, z = back/forwards
+		AddSpringImpulse(spring_viewmodel_recoil_rotation, Vector(RANDOM_FLOAT(-100.0f, 100.0f), RANDOM_FLOAT(-45.0f, 45.0f), 60.0f));
+		AddSpringImpulse(spring_viewmodel_recoil_position, Vector(RANDOM_FLOAT(-10.0f, 10.0f), -30.0f, -100.0f));
 	}
 
 	//eject the casing!!!

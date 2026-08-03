@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <hud_sprite_filter.h>
 
 DECLARE_MESSAGE(m_Battery, Battery)
 
@@ -112,7 +113,7 @@ bool CHudBattery::Draw(float flTime)
 
 	int iOffset = (m_prc1->bottom - m_prc1->top) / 6;
 
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
+	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight;
 	x = ScreenWidth / 4;
 
 	// make sure we have the right sprite handles
@@ -121,13 +122,31 @@ bool CHudBattery::Draw(float flTime)
 	if (0 == m_hSprite2)
 		m_hSprite2 = gHUD.GetSprite(gHUD.GetSpriteIndex("suit_full"));
 
-	SPR_Set(m_hSprite1, r, g, b);
-	SPR_DrawAdditive(0, x, y - iOffset, m_prc1);
+	//SPR_Set(m_hSprite1, r, g, b);
+	//SPR_DrawAdditive(0, x, y - iOffset, m_prc1);
+	DrawHudSpriteAdditiveNearest(
+		m_hSprite1,
+		0,
+		x,
+		y-iOffset,
+		m_prc1,
+		r,
+		g,
+		b);
 
 	if (rc.bottom > rc.top)
 	{
-		SPR_Set(m_hSprite2, r, g, b);
-		SPR_DrawAdditive(0, x, y - iOffset + (rc.top - m_prc2->top), &rc);
+		//SPR_Set(m_hSprite2, r, g, b);
+		//SPR_DrawAdditive(0, x, y - iOffset + (rc.top - m_prc2->top), &rc);
+		DrawHudSpriteAdditiveNearest(
+			m_hSprite2,
+			0,
+			x,
+			y - iOffset + (rc.top - m_prc2->top),
+			&rc,
+			r,
+			g,
+			b);
 	}
 
 	x += (m_prc1->right - m_prc1->left);

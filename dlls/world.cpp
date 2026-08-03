@@ -581,6 +581,9 @@ void CWorld::Precache()
 	PRECACHE_SOUND("weapons/ric3.wav");
 	PRECACHE_SOUND("weapons/ric4.wav");
 	PRECACHE_SOUND("weapons/ric5.wav");
+	PRECACHE_SOUND("weapons/ric6.wav");
+	PRECACHE_SOUND("weapons/ric7.wav");
+	PRECACHE_SOUND("weapons/ric8.wav");
 	//
 	// Setup light animation tables. 'a' is total darkness, 'z' is maxbright.
 	//
