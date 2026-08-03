@@ -26,57 +26,61 @@ DO_CC=$(CPLUS) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 #####################################################################
 
 HL1_OBJS = \
-	$(HL1_OBJ_DIR)/hud_spectator.o \
-	$(HL1_OBJ_DIR)/ev_hldm.o \
 	$(HL1_OBJ_DIR)/hl/hl_baseentity.o \
 	$(HL1_OBJ_DIR)/hl/hl_events.o \
 	$(HL1_OBJ_DIR)/hl/hl_objects.o \
 	$(HL1_OBJ_DIR)/hl/hl_weapons.o \
-	$(HL1_OBJ_DIR)/hud.o \
-	$(HL1_OBJ_DIR)/inputw32.o \
 	$(HL1_OBJ_DIR)/ammo.o \
-	$(HL1_OBJ_DIR)/ammo_secondary.o \
 	$(HL1_OBJ_DIR)/ammohistory.o \
+	$(HL1_OBJ_DIR)/ammo_secondary.o \
 	$(HL1_OBJ_DIR)/battery.o \
 	$(HL1_OBJ_DIR)/cdll_int.o \
 	$(HL1_OBJ_DIR)/com_weapons.o \
 	$(HL1_OBJ_DIR)/death.o \
 	$(HL1_OBJ_DIR)/demo.o \
 	$(HL1_OBJ_DIR)/entity.o \
-	$(HL1_OBJ_DIR)/ev_common.o \
 	$(HL1_OBJ_DIR)/events.o \
+	$(HL1_OBJ_DIR)/ev_common.o \
+	$(HL1_OBJ_DIR)/ev_hldm.o \
 	$(HL1_OBJ_DIR)/flashlight.o \
 	$(HL1_OBJ_DIR)/GameStudioModelRenderer.o \
 	$(HL1_OBJ_DIR)/geiger.o \
 	$(HL1_OBJ_DIR)/health.o \
+	$(HL1_OBJ_DIR)/hud.o \
 	$(HL1_OBJ_DIR)/hud_msg.o \
 	$(HL1_OBJ_DIR)/hud_redraw.o \
+	$(HL1_OBJ_DIR)/hud_spectator.o \
+	$(HL1_OBJ_DIR)/hud_sprite_filter.o \
 	$(HL1_OBJ_DIR)/hud_update.o \
-	$(HL1_OBJ_DIR)/in_camera.o \
 	$(HL1_OBJ_DIR)/input.o \
+	$(HL1_OBJ_DIR)/inputw32.o \
 	$(HL1_OBJ_DIR)/interpolation.o \
+	$(HL1_OBJ_DIR)/in_camera.o \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
+	$(HL1_OBJ_DIR)/particle_util.o \
+	$(HL1_OBJ_DIR)/particle_types.o \
+	$(HL1_OBJ_DIR)/random_util.o \
 	$(HL1_OBJ_DIR)/saytext.o \
-	$(HL1_OBJ_DIR)/status_icons.o \
 	$(HL1_OBJ_DIR)/statusbar.o \
-	$(HL1_OBJ_DIR)/studio_util.o \
+	$(HL1_OBJ_DIR)/status_icons.o \
 	$(HL1_OBJ_DIR)/StudioModelRenderer.o \
+	$(HL1_OBJ_DIR)/studio_util.o \
 	$(HL1_OBJ_DIR)/text_message.o \
 	$(HL1_OBJ_DIR)/train.o \
 	$(HL1_OBJ_DIR)/tri.o \
 	$(HL1_OBJ_DIR)/util.o \
-	$(HL1_OBJ_DIR)/view.o \
-	$(HL1_OBJ_DIR)/vgui_int.o \
 	$(HL1_OBJ_DIR)/vgui_ClassMenu.o \
 	$(HL1_OBJ_DIR)/vgui_CustomObjects.o \
+	$(HL1_OBJ_DIR)/vgui_int.o \
 	$(HL1_OBJ_DIR)/vgui_MOTDWindow.o \
 	$(HL1_OBJ_DIR)/vgui_SchemeManager.o \
 	$(HL1_OBJ_DIR)/vgui_ScorePanel.o \
-	$(HL1_OBJ_DIR)/vgui_TeamFortressViewport.o \
 	$(HL1_OBJ_DIR)/vgui_SpectatorPanel.o \
+	$(HL1_OBJ_DIR)/vgui_TeamFortressViewport.o \
 	$(HL1_OBJ_DIR)/vgui_teammenu.o \
-	$(HL1_OBJ_DIR)/voice_status.o \
+	$(HL1_OBJ_DIR)/view.o \
+	$(HL1_OBJ_DIR)/voice_status.o
 
 HL1_PARTICLEMAN_OBJS = \
 	$(HL1_PARTICLEMAN_OBJ_DIR)/CBaseParticle.o \
@@ -85,21 +89,27 @@ HL1_PARTICLEMAN_OBJS = \
 	$(HL1_PARTICLEMAN_OBJ_DIR)/IParticleMan_Active.o \
 	
 DLL_OBJS = \
-	$(HL1_SERVER_OBJ_DIR)/crossbow.o \
-	$(HL1_SERVER_OBJ_DIR)/crowbar.o \
-	$(HL1_SERVER_OBJ_DIR)/egon.o \
-	$(HL1_SERVER_OBJ_DIR)/gauss.o \
-	$(HL1_SERVER_OBJ_DIR)/glock.o \
-	$(HL1_SERVER_OBJ_DIR)/handgrenade.o \
-	$(HL1_SERVER_OBJ_DIR)/hornetgun.o \
-	$(HL1_SERVER_OBJ_DIR)/mp5.o \
-	$(HL1_SERVER_OBJ_DIR)/python.o \
-	$(HL1_SERVER_OBJ_DIR)/rpg.o \
-	$(HL1_SERVER_OBJ_DIR)/satchel.o \
-	$(HL1_SERVER_OBJ_DIR)/shotgun.o \
-	$(HL1_SERVER_OBJ_DIR)/squeakgrenade.o \
-	$(HL1_SERVER_OBJ_DIR)/tripmine.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_bd_rifle.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_crossbow.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_crowbar.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_deserteagle.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_duke4_pistol.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_egon.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_gauss.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_handgrenade.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_hornetgun.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_m1911.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_m4.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_m92.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_mp5.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_python.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_rpg.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_satchel.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_shotgun.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_squeakgrenade.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_tripmine.o \
 	$(HL1_SERVER_OBJ_DIR)/weapons_shared.o \
+	$(HL1_SERVER_OBJ_DIR)/weapon_glock.o \
 
 
 PUBLIC_OBJS = \
@@ -108,6 +118,7 @@ PUBLIC_OBJS = \
 COMMON_OBJS = \
 	$(COMMON_OBJ_DIR)/mathlib.o \
 	$(COMMON_OBJ_DIR)/parsemsg.o \
+	$(COMMON_OBJ_DIR)/motion_spring.o
 
 GAME_SHARED_OBJS = \
 	$(GAME_SHARED_OBJ_DIR)/filesystem_utils.o \
