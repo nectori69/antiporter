@@ -35,8 +35,8 @@ jobs:
           path: |
             linux/release/client.so
             linux/release/client.so.dbg
-            linux/release/hl.so
-            linux/release/hl.so.dbg
+            linux/server/hl.so
+            linux/server/hl.so.dbg
 
   win32:
     name: Win32
