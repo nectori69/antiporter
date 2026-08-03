@@ -18,10 +18,15 @@ jobs:
           sudo apt update
           sudo apt install -y g++-multilib clang libgl1-mesa-dev
       
-      - name: Build
+      - name: Build Server
         run: |
           cd linux
-          make COMPILER=${{ matrix.compiler }} CFG=release -j2
+          make hl COMPILER=${{ matrix.compiler }} CFG=server -j2
+      
+      - name: Build Client
+        run: |
+          cd linux
+          make hl_cdll COMPILER=${{ matrix.compiler }} CFG=release -j2
       
       - name: Deploy
         uses: actions/upload-artifact@v4
@@ -32,7 +37,7 @@ jobs:
             linux/release/client.so.dbg
             linux/release/hl.so
             linux/release/hl.so.dbg
-      
+
   win32:
     name: Win32
     runs-on: windows-latest
