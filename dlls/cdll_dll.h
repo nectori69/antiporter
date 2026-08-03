@@ -22,10 +22,10 @@
 constexpr int MAX_PLAYERS = 32;
 #define MAX_WEAPONS 64 // ???
 
-#define MAX_WEAPON_SLOTS 5 // hud item selection slots
-#define MAX_ITEM_TYPES 6   // hud item selection slots
+#define MAX_WEAPON_SLOTS 5 // how many columns. rows are in cl_dll/ammohistory.h
 
-#define MAX_ITEMS 5 // hard coded item types
+#define MAX_ITEM_TYPES 6 // legacy item types
+#define MAX_ITEMS 5 // legacy hard coded item types
 
 #define HIDEHUD_WEAPONS (1 << 0)
 #define HIDEHUD_FLASHLIGHT (1 << 1)

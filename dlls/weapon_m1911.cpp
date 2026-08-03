@@ -81,10 +81,10 @@ bool CM1911::GetItemInfo(ItemInfo* p)
 	p->iFlags = ITEM_FLAG_NOAUTORELOAD;
 
 	// The "slot" in the HUD that the weapon appears in. This is a pistol, so it goes into slot 1 with the others
-	p->iSlot = 0;
+	p->iSlot = 1;
 
 	// The "position" in the HUD that the weapon is added to. We'll put this after the m92 (which is in slot 3)
-	p->iPosition = 2;
+	p->iPosition = 5;
 
 	// Set the ID and auto-switching weights of the weapon
 	p->iId = m_iId = WEAPON_M1911;
