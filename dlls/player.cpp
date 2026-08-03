@@ -3425,7 +3425,7 @@ ImpulseCommands
 void CBasePlayer::ImpulseCommands()
 {
 	TraceResult tr; // UNDONE: kill me! This is temporary for PreAlpha CDs
-
+	
 	// Handle use events
 	PlayerUse();
 
@@ -3903,15 +3903,6 @@ void CBasePlayer::ItemPostFrame()
 	if (m_pTank != NULL)
 		return;
 
-#if defined(CLIENT_WEAPONS)
-	if (m_flNextAttack > 0)
-#else
-	if (gpGlobals->time < m_flNextAttack)
-#endif
-	{
-		return;
-	}
-
 	ImpulseCommands();
 
 	// check again if the player is using a tank if they started using it in PlayerUse
@@ -3920,6 +3911,15 @@ void CBasePlayer::ItemPostFrame()
 
 	if (!m_pActiveItem)
 		return;
+
+#if defined(CLIENT_WEAPONS)
+	if (m_flNextAttack > 0)
+#else
+	if (gpGlobals->time < m_flNextAttack)
+#endif
+	{
+		return;
+	}
 
 	m_pActiveItem->ItemPostFrame();
 }
